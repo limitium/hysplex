@@ -1,9 +1,9 @@
-###Hysplex - race kart time manager 
-####Build & run 
+### Hysplex - race kart time manager 
+#### Build & run 
 ```bash
 npm run start
 ```
-###todo:
+### todo:
  - Reload race action
  - Time formaters into options tab
  - Support backward pitlane time
