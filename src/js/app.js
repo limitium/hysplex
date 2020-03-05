@@ -1,0 +1,224 @@
+let race = {
+    pitstopTime: 40,
+    pitstopLag: 3,
+    pitstopToNextPilot: true,
+    maxPilotTime: 23 * 60,
+    raceTime: 25 * 6 * 60,
+    pit: [5, 6],
+    teams: [
+        {
+            name: "Team 1",
+            handicap: 0,
+            stages: []
+        }, {
+            name: "Team 2",
+            handicap: 120,
+            stages: []
+        }
+    ]
+};
+
+
+let createTimePoint = function (time) {
+    let date = new Date(time * 1000);
+    return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+};
+
+race.teams.forEach(t => {
+    var totalTime = t.handicap;
+    var index = 0;
+    t.stages.push({
+        name: `Handicap`,
+        start: createTimePoint(0),
+        end: createTimePoint(t.handicap),
+        type: 'handicap',
+        kart: ""
+    });
+    let totalPitstopTime = race.pitstopTime + race.pitstopLag;
+    while (totalTime < race.raceTime) {
+        let pilotTime = race.maxPilotTime - totalPitstopTime;
+        let pilotEndTime = Math.min(race.raceTime, totalTime + pilotTime);
+        t.stages.push({
+            name: `Pilot ${index % 3 + 1}`,
+            start: createTimePoint(totalTime),
+            end: createTimePoint(pilotEndTime),
+            type: 'drive',
+            kart: ""
+        });
+        totalTime = pilotEndTime;
+        if (pilotEndTime < race.raceTime) {
+            t.stages.push({
+                name: `Stop ${index % 3 + 1}`,
+                start: createTimePoint(pilotEndTime),
+                end: createTimePoint(pilotEndTime + totalPitstopTime),
+                type: 'pit',
+                kart: ""
+            });
+            totalTime += totalPitstopTime;
+        }
+        index++;
+    }
+});
+
+var rows = race.teams.map(t => {
+    var totalTime = t.handicap;
+    var stages = [];
+    var index = 0;
+    stages.push([t.name, `Handicap`, createTimePoint(0), createTimePoint(t.handicap)]);
+    let totalPitstopTime = race.pitstopTime + race.pitstopLag;
+    while (totalTime < race.raceTime) {
+        let pilotTime = race.maxPilotTime - totalPitstopTime;
+        let pilotEndTime = Math.min(race.raceTime, totalTime + pilotTime);
+        stages.push([t.name, `Pilot ${index % 3 + 1}`, createTimePoint(totalTime), createTimePoint(pilotEndTime)]);
+        totalTime = pilotEndTime;
+        if (pilotEndTime < race.raceTime) {
+            stages.push([t.name, `Stop ${index % 3 + 1}`, createTimePoint(pilotEndTime), createTimePoint(pilotEndTime + totalPitstopTime)]);
+            totalTime += totalPitstopTime;
+        }
+        index++;
+    }
+    return stages;
+});
+let data = rows.flat();
+
+Vue.component('race-settings', {
+    template: ''
+});
+
+Vue.component('race-time-end', {
+    props: ['value'],
+    methods: {
+        renderDate() {
+            return moment(this.value).format('HH:mm:ss');
+        },
+        updateDate(newVal) {
+            if (newVal.split(":").filter(p => p.match(/\d{2}/)).length == 3) {
+                this.$emit('input', createTimePoint(moment.duration(newVal).asSeconds()));
+            }
+        }
+    },
+    template: '<div class="input-field">\n' +
+        '<i class="material-icons prefix">alarm</i>\n' +
+        '<input v-bind:value="renderDate()" v-on:input="updateDate($event.target.value)" placeholder="End" type="text" class="validate">\n' +
+        '</div>'
+});
+Vue.component('race-time-duration', {
+    props: ['value'],
+    methods: {
+        renderDuration() {
+            let start = moment(this.value.start);
+            let end = moment(this.value.end);
+            return moment(createTimePoint(end.diff(start) / 1000)).format('HH:mm:ss');
+        }
+    },
+    template: '<span>{{renderDuration()}}</span>'
+});
+Vue.component('race-last-kart', {
+    props: ['value'],
+    methods: {
+        lastKart() {
+            return this.value.stages.reduce((kart, stage) => stage.kart ? stage.kart : kart, "");
+        }
+    },
+    template: '<span>{{lastKart()}}</span>'
+});
+Vue.component('race-pitlane', {
+    props: ['pitlane', 'teams'],
+    methods: {
+        lastKart() {
+            let currentPitlane = [...this.pitlane];
+            this.teams
+                .flatMap(t => t.stages.map(s => {
+                    const ns = Object.assign({}, s);
+                    ns.team = t.name;
+                    return ns;
+                }))
+                .filter(s => s.type !== 'drive')
+                .sort((s1, s2) => s1.end - s2.end)
+                .forEach((s, i, as) => {
+                    if (s.type === 'pit') {
+                        console.log(s)
+                        if (s.kart) {
+                            console.log('kart', s)
+                            currentPitlane.pop();
+                            const stagesWithKartForTeam = as.filter(cs => cs.team === s.team && cs.kart);
+                            console.log('stages', stagesWithKartForTeam)
+                            console.log('prev stage', stagesWithKartForTeam[stagesWithKartForTeam.length - 2])
+                            console.log('prev kart', stagesWithKartForTeam[stagesWithKartForTeam.length - 2].kart)
+                            currentPitlane.unshift(stagesWithKartForTeam[stagesWithKartForTeam.length - 2].kart);
+                        }
+                    }
+                });
+            console.log(123);
+            return currentPitlane.join(" ⤏ ");
+        }
+    },
+    template: '<div><p class="flow-text">Pitlane: {{lastKart()}}</p></div>'
+});
+Vue.component('race-timeline', function (resolve, reject) {
+    let definition = {
+        methods: {
+            drawChart: function () {
+                let dataTable = new google.visualization.DataTable();
+                dataTable.addColumn({type: 'string', id: 'Team'});
+                dataTable.addColumn({type: 'string', id: 'Stage'});
+                dataTable.addColumn({type: 'date', id: 'Start'});
+                dataTable.addColumn({type: 'date', id: 'End'});
+                dataTable.addRows(data);
+
+                this.chart.draw(dataTable);
+            }
+        },
+        mounted: function () {
+            console.log('m');
+            this.chart = new google.visualization.Timeline(this.$el);
+            google.visualization.events.addListener(this.chart, 'select', () => {
+                console.log(data[this.chart.getSelection()[0].row]);
+            });
+            this.drawChart();
+        },
+        beforeUpdate: function () {
+            console.log('u');
+            this.drawChart();
+        },
+        template: '<div></div>',
+    };
+    try {
+        google.charts.load('current', {packages: ['timeline']});
+        if (google.visualization === undefined) {
+            google.charts.setOnLoadCallback(function () {
+                resolve(definition);
+            });
+        } else {
+            resolve(definition);
+        }
+    } catch (e) {
+        console.log("Google error")
+    }
+});
+
+let view = {
+    tab: 'teams'
+};
+
+
+Vue.filter('raceTime', function (value) {
+    if (value) {
+        return moment(String(value)).format('HH:mm:ss')
+    }
+});
+
+
+var app = new Vue({
+    el: '#app',
+    data: {
+        race,
+        view
+    },
+    mounted: function () {
+        M.AutoInit();
+
+//        M.Tabs.init(document.querySelector('.tabs'));
+    }
+});
+

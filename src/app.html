@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<body>
+<div id="app" class="container">
+    <div>
+        <ul class="tabs">
+            <li class="tab" v-on:click="view.tab='race'">
+                <a href="#race" class="waves-effect waves-red" v-bind:class="{active: view.tab == 'race'}">Race</a>
+            </li>
+            <li class="tab" v-on:click="view.tab='options'">
+                <a href="#options" class="waves-effect waves-red"
+                   v-bind:class="{active: view.tab == 'options'}">Options</a>
+            </li>
+        </ul>
+        <!--            <div class="tabs-content carousel carousel-slider">-->
+        <div class="tabs-content">
+            <div id="race" class="carousel-item">
+                <div class="row">
+                    <div class="col s12">
+                        <race-timeline></race-timeline>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col s6">
+                        <race-pitlane v-bind:pitlane="race.pit" v-bind:teams="race.teams"></race-pitlane>
+                    </div>
+                    <div class="col right">
+                        <div class="input-field inline">
+                            <i class="material-icons prefix">schedule</i>
+                            <input id="race_time" type="text" value=""/>
+                            <label for="race_time">00:00:00</label>
+                        </div>
+                        <a class="waves-effect waves-light btn-small"><i class="material-icons left">timer</i>start</a>
+                    </div>
+                </div>
+                <ul class="collapsible popout">
+                    <li v-for="team in race.teams">
+                        <div class="collapsible-header">
+                            <span><i class="material-icons">group</i>{{team.name}}</span>
+                            <span><i class="material-icons">directions_car</i><race-last-kart
+                                    v-model="team"></race-last-kart></span>
+                        </div>
+                        <div class="collapsible-body">
+                            <table class="stripped highlight">
+                                <tr>
+                                    <th>Start</th>
+                                    <th>End</th>
+                                    <th>Duration</th>
+                                    <th>Kart</th>
+                                    <th>Stage</th>
+                                </tr>
+                                <tr v-for="stage in team.stages">
+                                    <td>{{stage.start|raceTime}}</td>
+                                    <td>
+                                        <race-time-end v-model="stage.end"></race-time-end>
+                                    </td>
+                                    <td>
+                                        <race-time-duration v-model="stage"></race-time-duration>
+                                    </td>
+                                    <td>
+                                        <div v-if="stage.type!='drive'" class="input-field">
+                                            <i class="material-icons prefix">directions_car</i>
+                                            <input placeholder="Kart" type="text" class="validate" v-model="stage.kart">
+                                        </div>
+                                    </td>
+                                    <td>{{stage.name}}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </li>
+                </ul>
+                <div class="row">
+                    <div class="col s6">
+                        <div class="input-field inline">
+                            <i class="material-icons prefix">group_add</i>
+                            <input id="add_team" type="text"/>
+                            <label for="add_team">Team {{race.teams.length+1}}</label>
+                        </div>
+                        <a class="btn-floating btn-large waves-effect waves-light teal btn-small"><i
+                                class="material-icons">add</i></a>
+                    </div>
+                </div>
+            </div>
+            <div id="options" class="carousel-item">
+                <div class="row">
+                    <div class="input-field col s3">
+                        <input id="raceTime" type="text" v-model="race.raceTime">
+                        <label for="raceTime" class="">Race time</label>
+                    </div>
+                    <div class="input-field col s3">
+                        <input id="pilotTime" type="text" v-model="race.maxPilotTime">
+                        <label for="pilotTime" class="">Max pilot time</label>
+                    </div>
+                    <div class="input-field col s3">
+                        <input id="pitstopTime" type="text" v-model="race.pitstopTime">
+                        <label for="pitstopTime" class="">Pitstop time</label>
+                    </div>
+                    <div class="input-field col s3">
+                        <input id="pitstopLag" type="text" v-model="race.pitstopLag">
+                        <label for="pitstopLag" class="">Pitstop lag</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s3">
+                        <input id="pitlane" type="text" v-bind:value="race.pit"
+                               v-on:input="race.pit = $event.target.value.split(',')">
+                        <label for="pitlane" class="">Pitlane ⟼</label>
+                    </div>
+                    <div class="input-field col s3">
+                        <div class="switch">
+                            <label for="pitstopToNextPilot">
+                                Current
+                                <input id="pitstopToNextPilot" type="checkbox" v-model="race.pitstopToNextPilot">
+                                <span class="lever"></span>
+                                Next
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col right">
+                        <a class="btn-floating btn-large waves-effect waves-light red"><i
+                                class="material-icons">refresh</i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{race}}
+</div>
+</body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Lonato race manager</title>
+    <link rel="stylesheet" href="css/vendor.css">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js">
+</script>
+<script type="text/javascript" src="https://www.google.com/jsapi">
+</script>
+
+<script src="js/vendor.js"></script>
+<script src="js/app.js"></script>
+</html>
