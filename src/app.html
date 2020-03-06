@@ -79,19 +79,19 @@
             <div id="options" class="carousel-item">
                 <div class="row">
                     <div class="input-field col s3">
-                        <input id="raceTime" type="text" v-model="race.raceTime">
+                        <race-time-editor v-model="race.raceTime"></race-time-editor>
                         <label for="raceTime" class="">Race time</label>
                     </div>
                     <div class="input-field col s3">
-                        <input id="pilotTime" type="text" v-model="race.maxPilotTime">
+                        <race-time-editor v-model="race.maxPilotTime"></race-time-editor>
                         <label for="pilotTime" class="">Max pilot time</label>
                     </div>
                     <div class="input-field col s3">
-                        <input id="pitstopTime" type="text" v-model="race.pitstopTime">
+                        <race-time-editor v-model="race.pitstopTime"></race-time-editor>
                         <label for="pitstopTime" class="">Pitstop time</label>
                     </div>
                     <div class="input-field col s3">
-                        <input id="pitstopLag" type="text" v-model="race.pitstopLag">
+                        <race-time-editor v-model="race.pitstopLag"></race-time-editor>
                         <label for="pitstopLag" class="">Pitstop lag</label>
                     </div>
                 </div>

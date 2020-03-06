@@ -5,7 +5,6 @@ npm run start
 ```
 ### todo:
  - Reload race action
- - Time formaters into options tab
  - Support backward pitlane time
  - Fill team stages
  - Remove team action

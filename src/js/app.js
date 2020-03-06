@@ -102,6 +102,22 @@ Vue.component('race-time-end', {
         '<input v-bind:value="renderDate()" v-on:input="updateDate($event.target.value)" placeholder="End" type="text" class="validate">\n' +
         '</div>'
 });
+
+Vue.component('race-time-editor', {
+    props: ['value'],
+    methods: {
+        renderDate() {
+            return moment(createTimePoint(this.value)).format('HH:mm:ss');
+        },
+        updateDate(newVal) {
+            if (newVal.split(":").filter(p => p.match(/\d{2}/)).length == 3) {
+                this.$emit('input', moment.duration(newVal).asSeconds());
+            }
+        }
+    },
+    template: '<input v-bind:value="renderDate()" v-on:input="updateDate($event.target.value)" type="text">'
+});
+
 Vue.component('race-time-duration', {
     props: ['value'],
     methods: {
