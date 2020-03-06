@@ -5,25 +5,25 @@ let race = {
     maxPilotTime: 23 * 60,
     raceTime: 25 * 6 * 60,
     pit: [5, 6],
-    teams: [
-        {
-            name: "Team 1",
-            handicap: 0,
-            stages: []
-        }, {
-            name: "Team 2",
-            handicap: 120,
-            stages: []
-        }
-    ]
+    startedAt: null,
+    newTeamName: "",
+    teams: []
 };
 
-
+let createTeam = function (name) {
+    race.teams.push({
+        name: name,
+        handicap: 0,
+        stages: []
+    });
+};
 let createTimePoint = function (time) {
     let date = new Date(time * 1000);
     return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
 };
 
+createTeam("Team 1");
+createTeam("Team 2");
 race.teams.forEach(t => {
     var totalTime = t.handicap;
     var index = 0;
@@ -121,6 +121,29 @@ Vue.component('race-last-kart', {
         }
     },
     template: '<span>{{lastKart()}}</span>'
+});
+Vue.component('race-new-team', {
+    props: ['value'],
+    methods: {
+        nextName() {
+            return "Team " + (this.value.teams.length + 1);
+        },
+        add() {
+            createTeam(this.value.newTeamName ? this.value.newTeamName : this.nextName());
+            this.value.newTeamName = "";
+        }
+    },
+    template:
+        '<div>' +
+        '  <div class="input-field inline">\n' +
+        '   <i class="material-icons prefix">group_add</i>\n' +
+        '   <input id="add_team" type="text" v-model="value.newTeamName"/>\n' +
+        '   <label for="add_team">{{nextName()}}</label>\n' +
+        '  </div>\n' +
+        '  <a class="btn-floating btn-large waves-effect waves-light teal btn-small">' +
+        '  <i class="material-icons" v-on:click="add()">add</i>' +
+        '  </a>' +
+        '</div>'
 });
 Vue.component('race-pitlane', {
     props: ['pitlane', 'teams'],

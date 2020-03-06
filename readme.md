@@ -7,7 +7,7 @@ npm run start
  - Reload race action
  - Time formaters into options tab
  - Support backward pitlane time
- - New team action
+ - Fill team stages
  - Remove team action
  - Set next stage `start` on `input` current stage `end` time
  - Refresh graph on any data change
