@@ -15,4 +15,4 @@ npm run start
  - Load `race` object from local storage
  - Recalculate next stages based on the last input data
  - Start race and manual time synchronization
- - Setup CI\CD to gist
+ - Setup CI\CD to GP via Actions
