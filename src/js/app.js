@@ -60,26 +60,28 @@ race.teams.forEach(t => {
     }
 });
 
-var rows = race.teams.map(t => {
-    var totalTime = t.handicap;
-    var stages = [];
-    var index = 0;
-    stages.push([t.name, `Handicap`, createTimePoint(0), createTimePoint(t.handicap)]);
-    let totalPitstopTime = race.pitstopTime + race.pitstopLag;
-    while (totalTime < race.raceTime) {
-        let pilotTime = race.maxPilotTime - totalPitstopTime;
-        let pilotEndTime = Math.min(race.raceTime, totalTime + pilotTime);
-        stages.push([t.name, `Pilot ${index % 3 + 1}`, createTimePoint(totalTime), createTimePoint(pilotEndTime)]);
-        totalTime = pilotEndTime;
-        if (pilotEndTime < race.raceTime) {
-            stages.push([t.name, `Stop ${index % 3 + 1}`, createTimePoint(pilotEndTime), createTimePoint(pilotEndTime + totalPitstopTime)]);
-            totalTime += totalPitstopTime;
+transformForTimeChart = function (teams) {
+    var rows = teams.map(t => {
+        var totalTime = t.handicap;
+        var stages = [];
+        var index = 0;
+        stages.push([t.name, `Handicap`, createTimePoint(0), createTimePoint(t.handicap)]);
+        let totalPitstopTime = race.pitstopTime + race.pitstopLag;
+        while (totalTime < race.raceTime) {
+            let pilotTime = race.maxPilotTime - totalPitstopTime;
+            let pilotEndTime = Math.min(race.raceTime, totalTime + pilotTime);
+            stages.push([t.name, `Pilot ${index % 3 + 1}`, createTimePoint(totalTime), createTimePoint(pilotEndTime)]);
+            totalTime = pilotEndTime;
+            if (pilotEndTime < race.raceTime) {
+                stages.push([t.name, `Stop ${index % 3 + 1}`, createTimePoint(pilotEndTime), createTimePoint(pilotEndTime + totalPitstopTime)]);
+                totalTime += totalPitstopTime;
+            }
+            index++;
         }
-        index++;
-    }
-    return stages;
-});
-let data = rows.flat();
+        return stages;
+    });
+    return rows.flat();
+};
 
 Vue.component('race-settings', {
     template: ''
@@ -176,19 +178,13 @@ Vue.component('race-pitlane', {
                 .sort((s1, s2) => s1.end - s2.end)
                 .forEach((s, i, as) => {
                     if (s.type === 'pit') {
-                        console.log(s)
                         if (s.kart) {
-                            console.log('kart', s)
                             currentPitlane.pop();
                             const stagesWithKartForTeam = as.filter(cs => cs.team === s.team && cs.kart);
-                            console.log('stages', stagesWithKartForTeam)
-                            console.log('prev stage', stagesWithKartForTeam[stagesWithKartForTeam.length - 2])
-                            console.log('prev kart', stagesWithKartForTeam[stagesWithKartForTeam.length - 2].kart)
                             currentPitlane.unshift(stagesWithKartForTeam[stagesWithKartForTeam.length - 2].kart);
                         }
                     }
                 });
-            console.log(123);
             return currentPitlane.join(" ⤏ ");
         }
     },
@@ -196,29 +192,35 @@ Vue.component('race-pitlane', {
 });
 Vue.component('race-timeline', function (resolve, reject) {
     let definition = {
+        props: ['teams'],
+        watch: {
+            teams() {
+                this.redraw();
+            }
+        },
         methods: {
-            drawChart: function () {
-                let dataTable = new google.visualization.DataTable();
-                dataTable.addColumn({type: 'string', id: 'Team'});
-                dataTable.addColumn({type: 'string', id: 'Stage'});
-                dataTable.addColumn({type: 'date', id: 'Start'});
-                dataTable.addColumn({type: 'date', id: 'End'});
-                dataTable.addRows(data);
+            redraw() {
+                this.dataTable = new google.visualization.DataTable();
+                this.dataTable.addColumn({type: 'string', id: 'Team'});
+                this.dataTable.addColumn({type: 'string', id: 'Stage'});
+                this.dataTable.addColumn({type: 'date', id: 'Start'});
+                this.dataTable.addColumn({type: 'date', id: 'End'});
+                this.dataTable.addRows(transformForTimeChart(this.teams));
 
-                this.chart.draw(dataTable);
+                var paddingHeight = 40;
+                var rowHeight = this.teams.length * 50;
+                var chartHeight = rowHeight + paddingHeight;
+                this.chart.draw(this.dataTable, {
+                    height: chartHeight
+                });
             }
         },
         mounted: function () {
-            console.log('m');
             this.chart = new google.visualization.Timeline(this.$el);
             google.visualization.events.addListener(this.chart, 'select', () => {
                 console.log(data[this.chart.getSelection()[0].row]);
             });
-            this.drawChart();
-        },
-        beforeUpdate: function () {
-            console.log('u');
-            this.drawChart();
+            this.redraw();
         },
         template: '<div></div>',
     };

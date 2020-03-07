@@ -17,7 +17,7 @@
             <div id="race" class="carousel-item">
                 <div class="row">
                     <div class="col s12">
-                        <race-timeline></race-timeline>
+                        <race-timeline v-bind:teams="race.teams"></race-timeline>
                     </div>
                 </div>
 
@@ -35,11 +35,11 @@
                     </div>
                 </div>
                 <ul class="collapsible popout">
-                    <li v-for="team in race.teams">
+                    <li v-for="(team,tIndex) in race.teams">
                         <div class="collapsible-header">
                             <span><i class="material-icons">group</i>{{team.name}}</span>
-                            <span><i class="material-icons">directions_car</i><race-last-kart
-                                    v-model="team"></race-last-kart></span>
+                            <span><i class="material-icons">directions_car</i>
+                                <race-last-kart v-model="race.teams[tIndex]"></race-last-kart></span>
                         </div>
                         <div class="collapsible-body">
                             <table class="stripped highlight">
@@ -50,13 +50,13 @@
                                     <th>Kart</th>
                                     <th>Stage</th>
                                 </tr>
-                                <tr v-for="stage in team.stages">
+                                <tr v-for="(stage,sIndex) in team.stages">
                                     <td>{{stage.start|raceTime}}</td>
                                     <td>
                                         <race-time-end v-model="stage.end"></race-time-end>
                                     </td>
                                     <td>
-                                        <race-time-duration v-model="stage"></race-time-duration>
+                                        <race-time-duration v-model="team.stages[sIndex]"></race-time-duration>
                                     </td>
                                     <td>
                                         <div v-if="stage.type!='drive'" class="input-field">
