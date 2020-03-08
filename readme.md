@@ -9,7 +9,6 @@ npm run start
  - Fill team stages
  - Remove team action
  - Set next stage `start` on `input` current stage `end` time
- - Construct graph on stages data
  - Steal google timecharts into local vendors
  - Store `race` object into local storage on any data change
  - Load `race` object from local storage

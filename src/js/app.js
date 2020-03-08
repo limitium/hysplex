@@ -192,10 +192,18 @@ Vue.component('race-pitlane', {
 });
 Vue.component('race-timeline', function (resolve, reject) {
     let definition = {
-        props: ['teams'],
+        props: {
+            teams: {
+                type: Array,
+                required: true
+            }
+        },
         watch: {
-            teams() {
-                this.redraw();
+            teams: {
+                deep: true,
+                handler() {
+                    this.redraw();
+                }
             }
         },
         methods: {
@@ -205,11 +213,16 @@ Vue.component('race-timeline', function (resolve, reject) {
                 this.dataTable.addColumn({type: 'string', id: 'Stage'});
                 this.dataTable.addColumn({type: 'date', id: 'Start'});
                 this.dataTable.addColumn({type: 'date', id: 'End'});
-                this.dataTable.addRows(transformForTimeChart(this.teams));
+                let rows = this.teams
+                    .map(t => t.stages.map(s => [t.name, s.name, s.start, s.end]))
+                    .flat();
+                this.dataTable.addRows(
+                    rows
+                );
 
-                var paddingHeight = 40;
-                var rowHeight = this.teams.length * 50;
-                var chartHeight = rowHeight + paddingHeight;
+                const paddingHeight = 40;
+                const rowHeight = this.teams.length * 50;
+                const chartHeight = rowHeight + paddingHeight;
                 this.chart.draw(this.dataTable, {
                     height: chartHeight
                 });
