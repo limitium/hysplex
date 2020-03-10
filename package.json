@@ -6,7 +6,7 @@
   "scripts": {
     "start": "run-p serve watch",
     "clean": "rm -rf dist/",
-    "mkdirs": "mkdir -p dist/js && mkdir -p dist/css && mkdir -p dist/fonts",
+    "mkdirs": "mkdir -p dist/js && mkdir -p dist/css && mkdir -p dist/css/fonts",
     "build": "run-s clean mkdirs build:src build:vendor",
     "build:src": "run-s copy:html copy:css copy:js",
     "build:vendor": "run-s vendor:css vendor:js vendor:fonts",
