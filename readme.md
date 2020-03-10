@@ -7,7 +7,6 @@ npm run start
  - Reload race action
  - Support backward pitlane time
  - Support different time optimisations: min first, min last(current), avg all 
- - Fill team stages
  - Remove team action
  - Set next stage `start` on `input` current stage `end` time
  - Steal google timecharts into local vendors

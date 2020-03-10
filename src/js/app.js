@@ -12,7 +12,7 @@ let race = {
 };
 
 let createTeam = function (name) {
-    race.teams.push({
+    let team = {
         name: name,
         stages: [{
             name: `Handicap`,
@@ -21,26 +21,21 @@ let createTeam = function (name) {
             type: 'handicap',
             kart: ""
         }]
-    });
+    };
+    race.teams.push(team);
+    return team;
 };
-let createTimePoint = function (time) {
-    let date = new Date(time * 1000);
-    return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
-};
-
-createTeam("Team 1");
-createTeam("Team 2");
-race.teams.forEach(t => {
-    let totalTime = 0;
+let fillStages = function (team) {
+    let totalTime = team.stages[team.stages.length - 1].end;
     let totalPitstopTime = race.pitstopTime + race.pitstopLag;
     while (totalTime < race.raceTime) {
-        let index = Math.round((t.stages.length - 1) / 2);
+        let index = Math.round((team.stages.length - 1) / 2);
         let pilotTime = race.maxPilotTime;
-        if (t.stages.length > 1) {
+        if (team.stages.length > 1) {
             pilotTime -= totalPitstopTime;
         }
-        if (race.pitstopToNextPilot && t.stages.length > 1) {
-            t.stages.push({
+        if (race.pitstopToNextPilot && team.stages.length > 1) {
+            team.stages.push({
                 name: `Stop ${index % race.pilotsInTeam + 1}`,
                 start: totalTime,
                 end: totalTime + totalPitstopTime,
@@ -50,7 +45,7 @@ race.teams.forEach(t => {
             totalTime += totalPitstopTime;
         }
         let pilotEndTime = Math.min(race.raceTime, totalTime + pilotTime);
-        t.stages.push({
+        team.stages.push({
             name: `Pilot ${index % race.pilotsInTeam + 1}`,
             start: totalTime,
             end: pilotEndTime,
@@ -59,7 +54,7 @@ race.teams.forEach(t => {
         });
         totalTime = pilotEndTime;
         if (!race.pitstopToNextPilot && pilotEndTime < race.raceTime) {
-            t.stages.push({
+            team.stages.push({
                 name: `Stop ${index % race.pilotsInTeam + 1}`,
                 start: pilotEndTime,
                 end: pilotEndTime + totalPitstopTime,
@@ -69,7 +64,15 @@ race.teams.forEach(t => {
             totalTime += totalPitstopTime;
         }
     }
-});
+};
+let createTimePoint = function (time) {
+    let date = new Date(time * 1000);
+    return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+};
+
+createTeam("Team 1");
+createTeam("Team 2");
+race.teams.forEach(fillStages);
 
 Vue.component('race-time-end', {
     props: ['value', 'stages', 'index'],
@@ -139,7 +142,7 @@ Vue.component('race-new-team', {
             return "Team " + (this.value.teams.length + 1);
         },
         add() {
-            createTeam(this.value.newTeamName ? this.value.newTeamName : this.nextName());
+            fillStages(createTeam(this.value.newTeamName ? this.value.newTeamName : this.nextName()));
             this.value.newTeamName = "";
         }
     },
