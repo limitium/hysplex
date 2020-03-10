@@ -53,7 +53,8 @@
                                 <tr v-for="(stage,sIndex) in team.stages">
                                     <td>{{stage.start|raceTime}}</td>
                                     <td>
-                                        <race-time-end v-model="stage.end"></race-time-end>
+                                        <span v-if="sIndex+1==team.stages.length"><i class="material-icons prefix">traffic</i></span>
+                                        <race-time-end v-else v-model="stage.end" v-bind:stages="team.stages" v-bind:index="sIndex"></race-time-end>
                                     </td>
                                     <td>
                                         <race-time-duration v-model="team.stages[sIndex]"></race-time-duration>
@@ -100,6 +101,10 @@
                         <input id="pitlane" type="text" v-bind:value="race.pit"
                                v-on:input="race.pit = $event.target.value.split(',')">
                         <label for="pitlane" class="">Pitlane ⟼</label>
+                    </div>
+                    <div class="input-field col s3">
+                        <input id="pilotsInTeam" type="text" v-model="race.pilotsInTeam">
+                        <label for="pilotsInTeam" class="">Pilots in team</label>
                     </div>
                     <div class="input-field col s3">
                         <div class="switch">

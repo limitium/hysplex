@@ -1,4 +1,5 @@
 let race = {
+    pilotsInTeam: 3,
     pitstopTime: 40,
     pitstopLag: 3,
     pitstopToNextPilot: true,
@@ -13,8 +14,13 @@ let race = {
 let createTeam = function (name) {
     race.teams.push({
         name: name,
-        handicap: 0,
-        stages: []
+        stages: [{
+            name: `Handicap`,
+            start: 0,
+            end: 0,
+            type: 'handicap',
+            kart: ""
+        }]
     });
 };
 let createTimePoint = function (time) {
@@ -25,77 +31,63 @@ let createTimePoint = function (time) {
 createTeam("Team 1");
 createTeam("Team 2");
 race.teams.forEach(t => {
-    var totalTime = t.handicap;
-    var index = 0;
-    t.stages.push({
-        name: `Handicap`,
-        start: createTimePoint(0),
-        end: createTimePoint(t.handicap),
-        type: 'handicap',
-        kart: ""
-    });
+    let totalTime = 0;
     let totalPitstopTime = race.pitstopTime + race.pitstopLag;
     while (totalTime < race.raceTime) {
-        let pilotTime = race.maxPilotTime - totalPitstopTime;
-        let pilotEndTime = Math.min(race.raceTime, totalTime + pilotTime);
-        t.stages.push({
-            name: `Pilot ${index % 3 + 1}`,
-            start: createTimePoint(totalTime),
-            end: createTimePoint(pilotEndTime),
-            type: 'drive',
-            kart: ""
-        });
-        totalTime = pilotEndTime;
-        if (pilotEndTime < race.raceTime) {
+        let index = Math.round((t.stages.length - 1) / 2);
+        let pilotTime = race.maxPilotTime;
+        if (t.stages.length > 1) {
+            pilotTime -= totalPitstopTime;
+        }
+        if (race.pitstopToNextPilot && t.stages.length > 1) {
             t.stages.push({
-                name: `Stop ${index % 3 + 1}`,
-                start: createTimePoint(pilotEndTime),
-                end: createTimePoint(pilotEndTime + totalPitstopTime),
+                name: `Stop ${index % race.pilotsInTeam + 1}`,
+                start: totalTime,
+                end: totalTime + totalPitstopTime,
                 type: 'pit',
                 kart: ""
             });
             totalTime += totalPitstopTime;
         }
-        index++;
+        let pilotEndTime = Math.min(race.raceTime, totalTime + pilotTime);
+        t.stages.push({
+            name: `Pilot ${index % race.pilotsInTeam + 1}`,
+            start: totalTime,
+            end: pilotEndTime,
+            type: 'drive',
+            kart: ""
+        });
+        totalTime = pilotEndTime;
+        if (!race.pitstopToNextPilot && pilotEndTime < race.raceTime) {
+            t.stages.push({
+                name: `Stop ${index % race.pilotsInTeam + 1}`,
+                start: pilotEndTime,
+                end: pilotEndTime + totalPitstopTime,
+                type: 'pit',
+                kart: ""
+            });
+            totalTime += totalPitstopTime;
+        }
     }
 });
 
-transformForTimeChart = function (teams) {
-    var rows = teams.map(t => {
-        var totalTime = t.handicap;
-        var stages = [];
-        var index = 0;
-        stages.push([t.name, `Handicap`, createTimePoint(0), createTimePoint(t.handicap)]);
-        let totalPitstopTime = race.pitstopTime + race.pitstopLag;
-        while (totalTime < race.raceTime) {
-            let pilotTime = race.maxPilotTime - totalPitstopTime;
-            let pilotEndTime = Math.min(race.raceTime, totalTime + pilotTime);
-            stages.push([t.name, `Pilot ${index % 3 + 1}`, createTimePoint(totalTime), createTimePoint(pilotEndTime)]);
-            totalTime = pilotEndTime;
-            if (pilotEndTime < race.raceTime) {
-                stages.push([t.name, `Stop ${index % 3 + 1}`, createTimePoint(pilotEndTime), createTimePoint(pilotEndTime + totalPitstopTime)]);
-                totalTime += totalPitstopTime;
-            }
-            index++;
-        }
-        return stages;
-    });
-    return rows.flat();
-};
-
-Vue.component('race-settings', {
-    template: ''
-});
-
 Vue.component('race-time-end', {
-    props: ['value'],
+    props: ['value', 'stages', 'index'],
     methods: {
         renderDate() {
-            return moment(this.value).format('HH:mm:ss');
+            return this.$options.filters.raceTime(this.value);
         },
         updateDate(newVal) {
-            if (newVal.split(":").filter(p => p.match(/\d{2}/)).length == 3) {
-                this.$emit('input', createTimePoint(moment.duration(newVal).asSeconds()));
+            let split = newVal.split(":");
+            if (split.filter(p => p.match(/\d{2}/)).length == 3) {
+                let seconds = parseInt(split[0]) * 60 * 60 + parseInt(split[1]) * 60 + parseInt(split[2]);
+                let diff = this.stages[this.index].end - seconds;
+                for (let i = this.index + 1; i < this.stages.length; i++) {
+                    this.stages[i].start -= diff;
+                    this.stages[i].end -= diff;
+                }
+                this.stages[this.stages.length - 1].end = race.raceTime;
+                this.$emit('input', seconds);
             }
         }
     },
@@ -109,11 +101,13 @@ Vue.component('race-time-editor', {
     props: ['value'],
     methods: {
         renderDate() {
-            return moment(createTimePoint(this.value)).format('HH:mm:ss');
+            return this.$options.filters.raceTime(this.value);
         },
         updateDate(newVal) {
-            if (newVal.split(":").filter(p => p.match(/\d{2}/)).length == 3) {
-                this.$emit('input', moment.duration(newVal).asSeconds());
+            let split = newVal.split(":");
+            if (split.filter(p => p.match(/\d{2}/)).length == 3) {
+                let seconds = parseInt(split[0]) * 60 * 60 + parseInt(split[1]) * 60 + parseInt(split[2]);
+                this.$emit('input', seconds);
             }
         }
     },
@@ -124,9 +118,7 @@ Vue.component('race-time-duration', {
     props: ['value'],
     methods: {
         renderDuration() {
-            let start = moment(this.value.start);
-            let end = moment(this.value.end);
-            return moment(createTimePoint(end.diff(start) / 1000)).format('HH:mm:ss');
+            return this.$options.filters.raceTime(this.value.end - this.value.start);
         }
     },
     template: '<span>{{renderDuration()}}</span>'
@@ -170,17 +162,17 @@ Vue.component('race-pitlane', {
             let currentPitlane = [...this.pitlane];
             this.teams
                 .flatMap(t => t.stages.map(s => {
-                    const ns = Object.assign({}, s);
-                    ns.team = t.name;
-                    return ns;
+                    const namedStage = Object.assign({}, s);
+                    namedStage.team = t.name;
+                    return namedStage;
                 }))
                 .filter(s => s.type !== 'drive')
                 .sort((s1, s2) => s1.end - s2.end)
-                .forEach((s, i, as) => {
-                    if (s.type === 'pit') {
-                        if (s.kart) {
+                .forEach((stage, i, allStages) => {
+                    if (stage.type === 'pit') {
+                        if (stage.kart) {
                             currentPitlane.pop();
-                            const stagesWithKartForTeam = as.filter(cs => cs.team === s.team && cs.kart);
+                            const stagesWithKartForTeam = allStages.filter(cs => cs.team === stage.team && cs.kart);
                             currentPitlane.unshift(stagesWithKartForTeam[stagesWithKartForTeam.length - 2].kart);
                         }
                     }
@@ -214,7 +206,7 @@ Vue.component('race-timeline', function (resolve, reject) {
                 this.dataTable.addColumn({type: 'date', id: 'Start'});
                 this.dataTable.addColumn({type: 'date', id: 'End'});
                 let rows = this.teams
-                    .map(t => t.stages.map(s => [t.name, s.name, s.start, s.end]))
+                    .map(t => t.stages.map(s => [t.name, s.name, createTimePoint(s.start), createTimePoint(s.end)]))
                     .flat();
                 this.dataTable.addRows(
                     rows
@@ -257,9 +249,14 @@ let view = {
 
 
 Vue.filter('raceTime', function (value) {
-    if (value) {
-        return moment(String(value)).format('HH:mm:ss')
-    }
+    let sec_num = parseInt(value, 10);
+    let hours = Math.floor(sec_num / 3600);
+    let minutes = Math.floor(sec_num / 60) % 60;
+    let seconds = sec_num % 60;
+
+    return [hours, minutes, seconds]
+        .map(v => v < 10 ? "0" + v : v)
+        .join(":")
 });
 
 
