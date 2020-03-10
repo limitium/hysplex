@@ -15,7 +15,7 @@
     "copy:css": "node-sass src/scss/app.scss > dist/css/app.css",
     "vendor:js": "concat -o dist/js/vendor.js src/vendor/vue.js node_modules/materialize-css/dist/js/materialize.js node_modules/moment/min/moment.min.js",
     "vendor:css": "concat -o dist/css/vendor.css node_modules/materialize-css/dist/css/materialize.css",
-    "vendor:fonts": "cp src/vendor/fonts/* dist/fonts/",
+    "vendor:fonts": "cp src/vendor/fonts/* dist/css/fonts/",
     "preserve": "run-s build kill",
     "kill": "lsof -n -i:8080 | grep LISTEN | awk '{print $2}' | xargs kill -9",
     "serve": "browser-sync start -s --files 'dist/**/*.(js|css|html)' --ss 'dist' --port 8080 --startPath /app.html --reload-debounce 500",
