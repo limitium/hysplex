@@ -158,6 +158,19 @@ Vue.component('race-new-team', {
         '  </a>' +
         '</div>'
 });
+Vue.component('race-reload', {
+    props: ['value'],
+    methods: {
+        reload() {
+            this.value.forEach(t => {
+                t.stages.splice(1);
+                fillStages(t);
+            });
+            this.$emit('input', this.value);
+        }
+    },
+    template: '<a v-on:click="reload()" class="btn-floating btn-large waves-effect waves-light red"><i class="material-icons">refresh</i></a>'
+});
 Vue.component('race-pitlane', {
     props: ['pitlane', 'teams'],
     methods: {
