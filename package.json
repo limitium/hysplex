@@ -10,7 +10,7 @@
     "build": "run-s clean mkdirs build:src build:vendor",
     "build:src": "run-s copy:html copy:css copy:js set:version",
     "build:vendor": "run-s vendor:css vendor:js vendor:fonts",
-    "set:version": "sed -i '' \"s|\\${commit}|$(git log --format=\"%H\" -n 1)|g\" dist/index.html",
+    "set:version": "sed -i '' \"s|\\${commit}|$(git log --format=\"%H\" -n 1)|g\" ./dist/index.html",
     "copy:html": "find src -name '*.html' -type f -exec cp {} dist \\;",
     "copy:js": "babel src/js > dist/js/app.js",
     "copy:css": "node-sass src/scss/app.scss > dist/css/app.css",
