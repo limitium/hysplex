@@ -1,4 +1,6 @@
 ### Hysplex - race kart time manager 
+#### Live demo
+https://limitium.github.io/hysplex/
 #### Build & run 
 ```bash
 npm run start
