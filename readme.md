@@ -6,6 +6,8 @@ https://limitium.github.io/hysplex/
 npm run start
 ```
 ### todo:
+ - Draw current time line on time chart
+ - Labels for stages depends on current time
  - Support different time optimisations: min first, min last(current), avg all 
  - Remove team action
  - Support stage management
@@ -13,4 +15,3 @@ npm run start
  - Steal google timecharts into local vendors
  - Store `race` object into local storage on any data change
  - Load `race` object from local storage
- - Start race and manual time synchronization

@@ -3,7 +3,7 @@ let race = {
     pitstopTime: 40,
     pitstopLag: 3,
     pitstopToNextPilot: true,
-    maxPilotTime: 23 * 60,
+    maxKartTime: 23 * 60,
     raceTime: 25 * 6 * 60,
     pit: [5, 6],
     startedAt: null,
@@ -30,7 +30,7 @@ let fillStages = function (team) {
     let totalPitstopTime = race.pitstopTime + race.pitstopLag;
     while (totalTime < race.raceTime) {
         let index = Math.round((team.stages.length - 1) / 2);
-        let pilotTime = race.maxPilotTime;
+        let pilotTime = race.maxKartTime;
         if (team.stages.length > 1) {
             pilotTime -= totalPitstopTime;
         }
@@ -69,7 +69,13 @@ let createTimePoint = function (time) {
     let date = new Date(time * 1000);
     return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
 };
-
+let intputTimeToSeconds = function (value) {
+    let split = value.split(":");
+    if (split.filter(p => p.match(/\d{2}/)).length == 3) {
+        return parseInt(split[0]) * 60 * 60 + parseInt(split[1]) * 60 + parseInt(split[2]);
+    }
+    return -1;
+};
 createTeam("Team 1");
 createTeam("Team 2");
 race.teams.forEach(fillStages);
@@ -81,9 +87,8 @@ Vue.component('race-time-end', {
             return this.$options.filters.raceTime(this.value);
         },
         updateDate(newVal) {
-            let split = newVal.split(":");
-            if (split.filter(p => p.match(/\d{2}/)).length == 3) {
-                let seconds = parseInt(split[0]) * 60 * 60 + parseInt(split[1]) * 60 + parseInt(split[2]);
+            let seconds = intputTimeToSeconds(newVal);
+            if (seconds !== -1) {
                 let diff = this.stages[this.index].end - seconds;
                 for (let i = this.index + 1; i < this.stages.length; i++) {
                     this.stages[i].start -= diff;
@@ -107,9 +112,8 @@ Vue.component('race-time-editor', {
             return this.$options.filters.raceTime(this.value);
         },
         updateDate(newVal) {
-            let split = newVal.split(":");
-            if (split.filter(p => p.match(/\d{2}/)).length == 3) {
-                let seconds = parseInt(split[0]) * 60 * 60 + parseInt(split[1]) * 60 + parseInt(split[2]);
+            let seconds = intputTimeToSeconds(newVal);
+            if (seconds !== -1) {
                 this.$emit('input', seconds);
             }
         }
@@ -162,7 +166,8 @@ Vue.component('race-reload', {
     props: ['value'],
     methods: {
         reload() {
-            this.value.forEach(t => {
+            this.value.startedAt = null;
+            this.value.teams.forEach(t => {
                 t.stages.splice(1);
                 fillStages(t);
             });
@@ -197,6 +202,45 @@ Vue.component('race-pitlane', {
         }
     },
     template: '<div><p class="flow-text">Pitlane: {{lastKart()}}</p></div>'
+});
+Vue.component('race-timer', {
+    props: ['value'],
+    mounted() {
+        let label = this.$el.querySelector("label");
+        setInterval(() => {
+            label.innerHTML = this.renderTime();
+        }, 100);
+    },
+    methods: {
+        renderTime() {
+            if (this.value.startedAt) {
+                return this.$options.filters.raceTime((Date.now() - this.value.startedAt) / 1000);
+            }
+            return "00:00:00";
+        },
+        start() {
+            this.value.startedAt = Date.now();
+        },
+        sync() {
+            let input = this.$el.querySelector("input");
+            let seconds = intputTimeToSeconds(input.value);
+            if (seconds !== -1) {
+                this.value.startedAt = Date.now() - seconds * 1000;
+                input.value = '';
+                this.$el.querySelector("label").classList.remove('active');
+            }
+        }
+    },
+    template: '' +
+        '<div>' +
+        '  <div class="input-field inline">\n' +
+        '    <i class="material-icons prefix">schedule</i>\n' +
+        '    <input id="race_time" type="text" value=""/>\n' +
+        '    <label for="race_time">{{renderTime()}}</label>\n' +
+        '  </div>\n' +
+        '  <a v-if="!value.startedAt" class="waves-effect waves-light btn-small" v-on:click="start()"><i class="material-icons left">timer</i>start</a>' +
+        '  <a v-if="value.startedAt" class="waves-effect waves-light btn-small" v-on:click="sync()"><i class="material-icons left">restore</i>sync</a>' +
+        '</div>'
 });
 Vue.component('race-timeline', function (resolve, reject) {
     let definition = {

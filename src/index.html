@@ -26,12 +26,7 @@
                         <race-pitlane v-bind:pitlane="race.pit" v-bind:teams="race.teams"></race-pitlane>
                     </div>
                     <div class="col right">
-                        <div class="input-field inline">
-                            <i class="material-icons prefix">schedule</i>
-                            <input id="race_time" type="text" value=""/>
-                            <label for="race_time">00:00:00</label>
-                        </div>
-                        <a class="waves-effect waves-light btn-small"><i class="material-icons left">timer</i>start</a>
+                        <race-timer v-model="race"></race-timer>
                     </div>
                 </div>
                 <ul class="collapsible popout">
@@ -84,8 +79,8 @@
                         <label for="raceTime" class="">Race time</label>
                     </div>
                     <div class="input-field col s3">
-                        <race-time-editor v-model="race.maxPilotTime"></race-time-editor>
-                        <label for="pilotTime" class="">Max pilot time</label>
+                        <race-time-editor v-model="race.maxKartTime"></race-time-editor>
+                        <label for="pilotTime" class="">Max kart time</label>
                     </div>
                     <div class="input-field col s3">
                         <race-time-editor v-model="race.pitstopTime"></race-time-editor>
@@ -119,7 +114,7 @@
                 </div>
                 <div class="row">
                     <div class="col right">
-                        <race-reload v-model="race.teams"></race-reload>
+                        <race-reload v-model="race"></race-reload>
                     </div>
                 </div>
             </div>
