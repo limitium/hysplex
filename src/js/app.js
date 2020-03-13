@@ -288,8 +288,8 @@ Vue.component('race-timeline', function (resolve, reject) {
                 });
             },
             calculateHeight() {
-                const paddingHeight = 40;
-                const rowHeight = this.teams.length * 50;
+                const paddingHeight = 50;
+                const rowHeight = this.teams.length * 42;
                 return rowHeight + paddingHeight;
             }
         },
@@ -299,25 +299,35 @@ Vue.component('race-timeline', function (resolve, reject) {
                 console.log(data[this.chart.getSelection()[0].row]);
             });
             google.visualization.events.addListener(this.chart, 'ready', () => {
-                let timeRect = this.$el.querySelector("svg").children[4];
-                let x = timeRect.getBBox().x;
-                let timerLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                timerLine.setAttribute('id', 'timer-line');
-                timerLine.setAttribute('x1', x);
-                timerLine.setAttribute('y1', '0');
-                timerLine.setAttribute('x2', x);
-                timerLine.setAttribute('y2', this.calculateHeight() - 30);
-                timerLine.setAttribute("stroke", "#83008c");
-                timerLine.setAttribute("stroke-width", "2");
-                timeRect.append(timerLine);
+                this.interval && clearInterval(this.interval);
 
-                setInterval(() => {
-                    let elapsed = this.race.getElapsed();
-                    let timeFraction = elapsed / this.race.raceTime;
-                    let newX = timeRect.getBBox().x + timeRect.getBBox().width * timeFraction;
-                    timerLine.setAttribute('x1', newX);
-                    timerLine.setAttribute('x2', newX);
-                }, 100);
+                let svgs = this.$el.querySelectorAll("svg");
+                let timeRect;
+
+                if (svgs.length == 1) {
+                    timeRect = svgs[0].children[4];
+                } else {
+                    timeRect = svgs[1].children[3];
+                }
+                if (timeRect) {
+                    let x = timeRect.getBBox().x;
+                    let timerLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    timerLine.setAttribute('id', 'timer-line');
+                    timerLine.setAttribute('x1', x);
+                    timerLine.setAttribute('y1', '0');
+                    timerLine.setAttribute('x2', x);
+                    timerLine.setAttribute('y2', timeRect.getBBox().height + 40);
+                    timerLine.setAttribute("stroke", "#83008c");
+                    timerLine.setAttribute("stroke-width", "2");
+                    timeRect.append(timerLine);
+                    this.interval = setInterval(() => {
+                        let elapsed = this.race.getElapsed();
+                        let timeFraction = elapsed / this.race.raceTime;
+                        let newX = timeRect.getBBox().x + timeRect.getBBox().width * timeFraction;
+                        timerLine.setAttribute('x1', newX);
+                        timerLine.setAttribute('x2', newX);
+                    }, 100);
+                }
             });
             this.redraw();
         },
