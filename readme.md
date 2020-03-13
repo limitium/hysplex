@@ -6,7 +6,6 @@ https://limitium.github.io/hysplex/
 npm run start
 ```
 ### todo:
- - Draw current time line on time chart
  - Labels for stages depends on current time
  - Support different time optimisations: min first, min last(current), avg all 
  - Remove team action
