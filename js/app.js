@@ -222,6 +222,9 @@ Vue.component('race-timeline', function (resolve, reject) {
             teams: {
                 type: Array,
                 required: true
+            },
+            race: {
+                type: Object
             }
         },
         watch: {
@@ -242,18 +245,41 @@ Vue.component('race-timeline', function (resolve, reject) {
                 let rows = this.teams.map(t => t.stages.map(s => [t.name, s.name, createTimePoint(s.start), createTimePoint(s.end)])).flat();
                 this.dataTable.addRows(rows);
 
+                this.chart.draw(this.dataTable, {
+                    height: this.calculateHeight()
+                });
+            },
+            calculateHeight() {
                 const paddingHeight = 40;
                 const rowHeight = this.teams.length * 50;
-                const chartHeight = rowHeight + paddingHeight;
-                this.chart.draw(this.dataTable, {
-                    height: chartHeight
-                });
+                return rowHeight + paddingHeight;
             }
         },
         mounted: function () {
             this.chart = new google.visualization.Timeline(this.$el);
             google.visualization.events.addListener(this.chart, 'select', () => {
                 console.log(data[this.chart.getSelection()[0].row]);
+            });
+            google.visualization.events.addListener(this.chart, 'ready', () => {
+                let timeRect = this.$el.querySelector("svg").children[4];
+                let x = timeRect.getBBox().x;
+                let timerLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                timerLine.setAttribute('id', 'timer-line');
+                timerLine.setAttribute('x1', x);
+                timerLine.setAttribute('y1', '0');
+                timerLine.setAttribute('x2', x);
+                timerLine.setAttribute('y2', this.calculateHeight());
+                timerLine.setAttribute("stroke", "#83008c");
+                timerLine.setAttribute("stroke-width", "2");
+                timeRect.append(timerLine);
+
+                setInterval(() => {
+                    let elapsed = (Date.now() - this.race.startedAt) / 1000;
+                    let timeFraction = elapsed / this.race.raceTime;
+                    let newX = timeRect.getBBox().x + timeRect.getBBox().width * timeFraction;
+                    timerLine.setAttribute('x1', newX);
+                    timerLine.setAttribute('x2', newX);
+                }, 100);
             });
             this.redraw();
         },
