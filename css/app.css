@@ -9,16 +9,22 @@ div.container {
       display: inherit; }
   div.container .collapsible-body {
     margin-top: 0; }
-  div.container #teams .collapsible {
+  div.container #race .collapsible {
     margin-top: 0; }
-  div.container #teams .input-field {
-    margin: 0; }
-    div.container #teams .input-field input[type=text] {
-      margin-bottom: 0;
-      height: inherit; }
-    div.container #teams .input-field .prefix {
-      font-size: 1.6rem;
-      top: 0; }
+    div.container #race .collapsible .collapsible-body {
+      padding: 0; }
+      div.container #race .collapsible .collapsible-body td {
+        padding: 0 5px; }
+        div.container #race .collapsible .collapsible-body td .input-field {
+          margin: 0; }
+          div.container #race .collapsible .collapsible-body td .input-field input[type=text] {
+            margin-bottom: 0;
+            height: inherit; }
+        div.container #race .collapsible .collapsible-body td .prefix {
+          font-size: 1.6rem;
+          top: 0; }
+        div.container #race .collapsible .collapsible-body td .stage-name {
+          margin-left: 3rem; }
 
 @font-face {
   font-family: 'Material Icons';
