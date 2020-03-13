@@ -8,12 +8,18 @@ let race = {
     pit: [5, 6],
     startedAt: null,
     newTeamName: "",
-    teams: [],
-    getElapsed() {
-        return (Date.now() - this.startedAt) / 1000;
-    }
+    teams: []
 };
-
+let storedRace = localStorage.getItem('race.data');
+if (storedRace) {
+    race = JSON.parse(storedRace);
+}
+race.getElapsed = function () {
+    if (!this.startedAt) {
+        return 0;
+    }
+    return (Date.now() - this.startedAt) / 1000;
+};
 let createTeam = function (name) {
     let team = {
         name: name,
@@ -79,8 +85,7 @@ let intputTimeToSeconds = function (value) {
     }
     return -1;
 };
-createTeam("Team 1");
-createTeam("Team 2");
+
 race.teams.forEach(fillStages);
 
 Vue.component('race-time-end', {
@@ -301,7 +306,7 @@ Vue.component('race-timeline', function (resolve, reject) {
                 timerLine.setAttribute('x1', x);
                 timerLine.setAttribute('y1', '0');
                 timerLine.setAttribute('x2', x);
-                timerLine.setAttribute('y2', this.calculateHeight());
+                timerLine.setAttribute('y2', this.calculateHeight() - 30);
                 timerLine.setAttribute("stroke", "#83008c");
                 timerLine.setAttribute("stroke-width", "2");
                 timeRect.append(timerLine);
@@ -354,6 +359,14 @@ var app = new Vue({
     data: {
         race,
         view
+    },
+    watch: {
+        race: {
+            deep: true,
+            handler() {
+                localStorage.setItem('race.data', JSON.stringify(this.race));
+            }
+        }
     },
     mounted: function () {
         M.AutoInit();

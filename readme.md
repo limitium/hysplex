@@ -11,6 +11,4 @@ npm run start
  - Support stage management
  - Input validators
  - Warnings: min pilot time, max pilot time
- - Steal google timecharts into local vendors
- - Store `race` object into local storage on any data change
- - Load `race` object from local storage
+ - Store google timecharts into local vendors
