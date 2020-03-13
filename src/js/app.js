@@ -160,7 +160,7 @@ Vue.component('race-new-team', {
         '   <input id="add_team" type="text" v-model="value.newTeamName"/>\n' +
         '   <label for="add_team">{{nextName()}}</label>\n' +
         '  </div>\n' +
-        '  <a class="btn-floating btn-large waves-effect waves-light teal btn-small">' +
+        '  <a class="btn-floating waves-effect waves-light teal btn-small">' +
         '  <i class="material-icons" v-on:click="add()">add</i>' +
         '  </a>' +
         '</div>'
