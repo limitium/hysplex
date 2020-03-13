@@ -6,7 +6,7 @@ https://limitium.github.io/hysplex/
 npm run start
 ```
 ### todo:
- - Labels for stages depends on current time
+ - Make current stage like progress bar
  - Support different time optimisations: min first, min last(current), avg all 
  - Remove team action
  - Support stage management

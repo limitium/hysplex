@@ -47,7 +47,8 @@
                                             <th>Kart</th>
                                             <th>Stage</th>
                                         </tr>
-                                        <tr v-for="(stage,sIndex) in team.stages">
+                                        <tr v-for="(stage,sIndex) in team.stages"
+                                            v-bind:class="[race.getElapsed()>stage.end?'done':'',race.getElapsed()>stage.start&&race.getElapsed()<stage.end?'current':'']">
                                             <td>{{stage.start|raceTime}}</td>
                                             <td>
                                                 <span v-if="sIndex+1==team.stages.length"><i

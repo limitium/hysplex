@@ -22,10 +22,18 @@ div.container {
   #race {
     .collapsible {
       margin-top: 0;
-
+      .collapsible-header{
+        padding: 0.5rem;
+      }
       .collapsible-body {
         padding: 0;
-
+        tr{
+          &.done{background-color: #ccc;}
+          &.current{background-color: deepskyblue;}
+        }
+        th{
+          padding: 0 5px;
+        }
         td {
           padding: 0 5px;
 

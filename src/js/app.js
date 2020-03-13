@@ -8,7 +8,10 @@ let race = {
     pit: [5, 6],
     startedAt: null,
     newTeamName: "",
-    teams: []
+    teams: [],
+    getElapsed() {
+        return (Date.now() - this.startedAt) / 1000;
+    }
 };
 
 let createTeam = function (name) {
@@ -214,7 +217,7 @@ Vue.component('race-timer', {
     methods: {
         renderTime() {
             if (this.value.startedAt) {
-                return this.$options.filters.raceTime((Date.now() - this.value.startedAt) / 1000);
+                return this.$options.filters.raceTime(this.value.getElapsed());
             }
             return "00:00:00";
         },
@@ -304,7 +307,7 @@ Vue.component('race-timeline', function (resolve, reject) {
                 timeRect.append(timerLine);
 
                 setInterval(() => {
-                    let elapsed = (Date.now() - this.race.startedAt) / 1000;
+                    let elapsed = this.race.getElapsed();
                     let timeFraction = elapsed / this.race.raceTime;
                     let newX = timeRect.getBBox().x + timeRect.getBBox().width * timeFraction;
                     timerLine.setAttribute('x1', newX);
