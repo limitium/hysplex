@@ -10,7 +10,16 @@ let race = {
     newTeamName: "",
     teams: []
 };
-
+let storedRace = localStorage.getItem('race.data');
+if (storedRace) {
+    race = JSON.parse(storedRace);
+}
+race.getElapsed = function () {
+    if (!this.startedAt) {
+        return 0;
+    }
+    return (Date.now() - this.startedAt) / 1000;
+};
 let createTeam = function (name) {
     let team = {
         name: name,
@@ -76,8 +85,7 @@ let intputTimeToSeconds = function (value) {
     }
     return -1;
 };
-createTeam("Team 1");
-createTeam("Team 2");
+
 race.teams.forEach(fillStages);
 
 Vue.component('race-time-end', {
@@ -147,7 +155,7 @@ Vue.component('race-new-team', {
             this.value.newTeamName = "";
         }
     },
-    template: '<div>' + '  <div class="input-field inline">\n' + '   <i class="material-icons prefix">group_add</i>\n' + '   <input id="add_team" type="text" v-model="value.newTeamName"/>\n' + '   <label for="add_team">{{nextName()}}</label>\n' + '  </div>\n' + '  <a class="btn-floating btn-large waves-effect waves-light teal btn-small">' + '  <i class="material-icons" v-on:click="add()">add</i>' + '  </a>' + '</div>'
+    template: '<div>' + '  <div class="input-field inline">\n' + '   <i class="material-icons prefix">group_add</i>\n' + '   <input id="add_team" type="text" v-model="value.newTeamName"/>\n' + '   <label for="add_team">{{nextName()}}</label>\n' + '  </div>\n' + '  <a class="btn-floating waves-effect waves-light teal btn-small">' + '  <i class="material-icons" v-on:click="add()">add</i>' + '  </a>' + '</div>'
 });
 Vue.component('race-reload', {
     props: ['value'],
@@ -197,7 +205,7 @@ Vue.component('race-timer', {
     methods: {
         renderTime() {
             if (this.value.startedAt) {
-                return this.$options.filters.raceTime((Date.now() - this.value.startedAt) / 1000);
+                return this.$options.filters.raceTime(this.value.getElapsed());
             }
             return "00:00:00";
         },
@@ -268,13 +276,13 @@ Vue.component('race-timeline', function (resolve, reject) {
                 timerLine.setAttribute('x1', x);
                 timerLine.setAttribute('y1', '0');
                 timerLine.setAttribute('x2', x);
-                timerLine.setAttribute('y2', this.calculateHeight());
+                timerLine.setAttribute('y2', this.calculateHeight() - 30);
                 timerLine.setAttribute("stroke", "#83008c");
                 timerLine.setAttribute("stroke-width", "2");
                 timeRect.append(timerLine);
 
                 setInterval(() => {
-                    let elapsed = (Date.now() - this.race.startedAt) / 1000;
+                    let elapsed = this.race.getElapsed();
                     let timeFraction = elapsed / this.race.raceTime;
                     let newX = timeRect.getBBox().x + timeRect.getBBox().width * timeFraction;
                     timerLine.setAttribute('x1', newX);
@@ -317,6 +325,14 @@ var app = new Vue({
     data: {
         race,
         view
+    },
+    watch: {
+        race: {
+            deep: true,
+            handler() {
+                localStorage.setItem('race.data', JSON.stringify(this.race));
+            }
+        }
     },
     mounted: function () {
         M.AutoInit();

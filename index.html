@@ -47,7 +47,8 @@
                                             <th>Kart</th>
                                             <th>Stage</th>
                                         </tr>
-                                        <tr v-for="(stage,sIndex) in team.stages">
+                                        <tr v-for="(stage,sIndex) in team.stages"
+                                            v-bind:class="[race.getElapsed()>stage.end?'done':'',race.getElapsed()>stage.start&&race.getElapsed()<stage.end?'current':'']">
                                             <td>{{stage.start|raceTime}}</td>
                                             <td>
                                                 <span v-if="sIndex+1==team.stages.length"><i
@@ -77,6 +78,9 @@
                                             </td>
                                         </tr>
                                     </table>
+                                    <a v-on:click="race.teams.splice(tIndex,1)" class="btn-floating waves-effect waves-light red btn-small delete">
+                                        <i class="material-icons right">delete</i>
+                                    </a>
                                 </div>
                             </li>
                         </ul>
@@ -142,7 +146,7 @@
                 <div class="col s12">
                     <h6 class="white-text">Build:</h6>
                     <p class="grey-text text-lighten-4"><a class="grey-text text-lighten-4"
-                                                           href="https://github.com/limitium/hysplex/commit/9904bcfb7b10444a4980df6f0e31e858dcc2005c">9904bcfb7b10444a4980df6f0e31e858dcc2005c</a>
+                                                           href="https://github.com/limitium/hysplex/commit/abc4b25406a326228eae77f20a25c44ab1302bf2">abc4b25406a326228eae77f20a25c44ab1302bf2</a>
                     </p>
                 </div>
             </div>

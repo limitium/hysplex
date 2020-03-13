@@ -11,8 +11,16 @@ div.container {
     margin-top: 0; }
   div.container #race .collapsible {
     margin-top: 0; }
+    div.container #race .collapsible .collapsible-header {
+      padding: 0.5rem; }
     div.container #race .collapsible .collapsible-body {
       padding: 0; }
+      div.container #race .collapsible .collapsible-body tr.done {
+        background-color: #ccc; }
+      div.container #race .collapsible .collapsible-body tr.current {
+        background-color: deepskyblue; }
+      div.container #race .collapsible .collapsible-body th {
+        padding: 0 5px; }
       div.container #race .collapsible .collapsible-body td {
         padding: 0 5px; }
         div.container #race .collapsible .collapsible-body td .input-field {
@@ -25,6 +33,8 @@ div.container {
           top: 0; }
         div.container #race .collapsible .collapsible-body td .stage-name {
           margin-left: 3rem; }
+      div.container #race .collapsible .collapsible-body .delete {
+        margin: 0.3rem; }
 
 @font-face {
   font-family: 'Material Icons';
