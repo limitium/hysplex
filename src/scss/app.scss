@@ -3,7 +3,6 @@ div.container {
   width: 100%;
 
 
-
   .collapsible-header {
     justify-content: space-between;
 
@@ -20,26 +19,39 @@ div.container {
     margin-top: 0;
   }
 
-  #teams {
+  #race {
     .collapsible {
       margin-top: 0;
-    }
-    .input-field {
-      margin: 0;
 
-      input[type=text] {
-        margin-bottom: 0;
-        height: inherit;
-      }
+      .collapsible-body {
+        padding: 0;
 
-      .prefix {
-        font-size: 1.6rem;
-        top: 0;
+        td {
+          padding: 0 5px;
+
+          .input-field {
+            margin: 0;
+
+            input[type=text] {
+              margin-bottom: 0;
+              height: inherit;
+            }
+
+          }
+
+          .prefix {
+            font-size: 1.6rem;
+            top: 0;
+          }
+
+          .stage-name {
+            margin-left: 3rem;
+          }
+        }
       }
     }
   }
 }
-
 
 
 @font-face {

@@ -29,43 +29,59 @@
                         <race-timer v-model="race"></race-timer>
                     </div>
                 </div>
-                <ul class="collapsible popout">
-                    <li v-for="(team,tIndex) in race.teams">
-                        <div class="collapsible-header">
-                            <span><i class="material-icons">group</i>{{team.name}}</span>
-                            <span><i class="material-icons">directions_car</i>
+                <div class="row">
+                    <div class="col s12">
+                        <ul class="collapsible">
+                            <li v-for="(team,tIndex) in race.teams">
+                                <div class="collapsible-header">
+                                    <span><i class="material-icons">group</i>{{team.name}}</span>
+                                    <span><i class="material-icons">directions_car</i>
                                 <race-last-kart v-model="race.teams[tIndex]"></race-last-kart></span>
-                        </div>
-                        <div class="collapsible-body">
-                            <table class="stripped highlight">
-                                <tr>
-                                    <th>Start</th>
-                                    <th>End</th>
-                                    <th>Duration</th>
-                                    <th>Kart</th>
-                                    <th>Stage</th>
-                                </tr>
-                                <tr v-for="(stage,sIndex) in team.stages">
-                                    <td>{{stage.start|raceTime}}</td>
-                                    <td>
-                                        <span v-if="sIndex+1==team.stages.length"><i class="material-icons prefix">traffic</i></span>
-                                        <race-time-end v-else v-model="stage.end" v-bind:stages="team.stages" v-bind:index="sIndex"></race-time-end>
-                                    </td>
-                                    <td>
-                                        <race-time-duration v-model="team.stages[sIndex]"></race-time-duration>
-                                    </td>
-                                    <td>
-                                        <div v-if="stage.type!='drive'" class="input-field">
-                                            <i class="material-icons prefix">directions_car</i>
-                                            <input placeholder="Kart" type="text" class="validate" v-model="stage.kart">
-                                        </div>
-                                    </td>
-                                    <td>{{stage.name}}</td>
-                                </tr>
-                            </table>
-                        </div>
-                    </li>
-                </ul>
+                                </div>
+                                <div class="collapsible-body">
+                                    <table class="stripped highlight">
+                                        <tr>
+                                            <th>Start</th>
+                                            <th>End</th>
+                                            <th>Duration</th>
+                                            <th>Kart</th>
+                                            <th>Stage</th>
+                                        </tr>
+                                        <tr v-for="(stage,sIndex) in team.stages">
+                                            <td>{{stage.start|raceTime}}</td>
+                                            <td>
+                                                <span v-if="sIndex+1==team.stages.length"><i
+                                                        class="material-icons prefix">traffic</i></span>
+                                                <race-time-end v-else v-model="stage.end" v-bind:stages="team.stages"
+                                                               v-bind:index="sIndex"></race-time-end>
+                                            </td>
+                                            <td>
+                                                <race-time-duration v-model="team.stages[sIndex]"></race-time-duration>
+                                            </td>
+                                            <td>
+                                                <div v-if="stage.type!='drive'" class="input-field">
+                                                    <i class="material-icons prefix">directions_car</i>
+                                                    <input placeholder="Kart" type="text" class="validate"
+                                                           v-model="stage.kart">
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="input-field">
+                                                    <i v-if="stage.type=='handicap'" class="material-icons prefix">av_timer</i>
+                                                    <i v-else-if="stage.type=='pit'" class="material-icons prefix">transfer_within_a_station</i>
+                                                    <i v-else-if="stage.type=='drive'" class="material-icons prefix">airline_seat_recline_extra</i>
+                                                    <div class="stage-name">
+                                                        {{stage.name}}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col s6">
                         <race-new-team v-model="race"></race-new-team>
@@ -125,7 +141,8 @@
             <div class="row">
                 <div class="col s12">
                     <h6 class="white-text">Build:</h6>
-                    <p class="grey-text text-lighten-4"><a class="grey-text text-lighten-4" href="https://github.com/limitium/hysplex/commit/${commit}">${commit}</a>
+                    <p class="grey-text text-lighten-4"><a class="grey-text text-lighten-4"
+                                                           href="https://github.com/limitium/hysplex/commit/${commit}">${commit}</a>
                     </p>
                 </div>
             </div>
