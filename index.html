@@ -17,16 +17,16 @@
             <div id="race" class="carousel-item">
                 <div class="row">
                     <div class="col s12">
-                        <race-timeline v-bind:teams="race.teams" v-bind:race="race"></race-timeline>
+                        <race-timeline v-bind:teams="race.teams" v-bind:race="race" v-bind:view="view"></race-timeline>
                     </div>
                 </div>
 
                 <div class="row">
-                    <div class="col s6">
-                        <race-pitlane v-bind:pitlane="race.pit" v-bind:teams="race.teams"></race-pitlane>
-                    </div>
-                    <div class="col right">
+                    <div class="col s12 m6">
                         <race-timer v-model="race"></race-timer>
+                    </div>
+                    <div class="col s12 m6">
+                        <race-pitlane v-bind:pitlane="race.pit" v-bind:teams="race.teams"></race-pitlane>
                     </div>
                 </div>
                 <div class="row">
@@ -45,14 +45,26 @@
                                             <th>End</th>
                                             <th>Duration</th>
                                             <th>Kart</th>
-                                            <th>Stage</th>
                                         </tr>
                                         <tr v-for="(stage,sIndex) in team.stages"
                                             v-bind:class="[race.getElapsed()>stage.end?'done':'',race.getElapsed()>stage.start&&race.getElapsed()<stage.end?'current':'']">
-                                            <td>{{stage.start|raceTime}}</td>
                                             <td>
-                                                <span v-if="sIndex+1==team.stages.length"><i
-                                                        class="material-icons prefix">traffic</i></span>
+                                                <div class="input-field">
+                                                    <i v-if="stage.type=='handicap'" class="material-icons prefix">av_timer</i>
+                                                    <i v-else-if="stage.type=='pit'" class="material-icons prefix">transfer_within_a_station</i>
+                                                    <i v-else-if="stage.type=='drive'" class="material-icons prefix">airline_seat_recline_extra</i>
+                                                    <div class="stage-name">
+                                                        {{stage.start|raceTime}}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div v-if="sIndex+1==team.stages.length" class="input-field"><i
+                                                        class="material-icons prefix">traffic</i>
+                                                    <div class="stage-name">
+                                                        {{stage.end|raceTime}}
+                                                    </div>
+                                                </div>
                                                 <race-time-end v-else v-model="stage.end" v-bind:stages="team.stages"
                                                                v-bind:index="sIndex"></race-time-end>
                                             </td>
@@ -66,19 +78,11 @@
                                                            v-model="stage.kart">
                                                 </div>
                                             </td>
-                                            <td>
-                                                <div class="input-field">
-                                                    <i v-if="stage.type=='handicap'" class="material-icons prefix">av_timer</i>
-                                                    <i v-else-if="stage.type=='pit'" class="material-icons prefix">transfer_within_a_station</i>
-                                                    <i v-else-if="stage.type=='drive'" class="material-icons prefix">airline_seat_recline_extra</i>
-                                                    <div class="stage-name">
-                                                        {{stage.name}}
-                                                    </div>
-                                                </div>
-                                            </td>
+
                                         </tr>
                                     </table>
-                                    <a v-on:click="race.teams.splice(tIndex,1)" class="btn-floating waves-effect waves-light red btn-small delete">
+                                    <a v-on:click="race.teams.splice(tIndex,1)"
+                                       class="btn-floating waves-effect waves-light red btn-small delete">
                                         <i class="material-icons right">delete</i>
                                     </a>
                                 </div>
@@ -87,7 +91,7 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col s6">
+                    <div class="col">
                         <race-new-team v-model="race"></race-new-team>
                     </div>
                 </div>
@@ -121,10 +125,10 @@
                         <input id="pilotsInTeam" type="text" v-model="race.pilotsInTeam">
                         <label for="pilotsInTeam" class="">Pilots in team</label>
                     </div>
-                    <div class="input-field col s3">
+                    <div class="input-field col">
                         <div class="switch">
                             <label for="pitstopToNextPilot">
-                                Current
+                                Pit current
                                 <input id="pitstopToNextPilot" type="checkbox" v-model="race.pitstopToNextPilot">
                                 <span class="lever"></span>
                                 Next
@@ -140,18 +144,18 @@
             </div>
         </div>
     </div>
-    <footer class="page-footer">
-        <div class="container">
-            <div class="row">
-                <div class="col s12">
-                    <h6 class="white-text">Build:</h6>
-                    <p class="grey-text text-lighten-4"><a class="grey-text text-lighten-4"
-                                                           href="https://github.com/limitium/hysplex/commit/a9239edb946f0bae61cfe4ca0365772fac820f01">a9239edb946f0bae61cfe4ca0365772fac820f01</a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </footer>
+<!--    <footer class="page-footer">-->
+<!--        <div class="container">-->
+<!--            <div class="row">-->
+<!--                <div class="col s12">-->
+<!--                    <h6 class="white-text">Build:</h6>-->
+<!--                    <p class="grey-text text-lighten-4"><a class="grey-text text-lighten-4"-->
+<!--                                                           href="https://github.com/limitium/hysplex/commit/79b74348c6d393f0d362fb8e213c4d6845f855ef">79b74348c6d393f0d362fb8e213c4d6845f855ef</a>-->
+<!--                    </p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </footer>-->
 </div>
 </body>
 <head>

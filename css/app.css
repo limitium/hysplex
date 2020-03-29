@@ -9,6 +9,16 @@ div.container {
       display: inherit; }
   div.container .collapsible-body {
     margin-top: 0; }
+  div.container #race .input-field.inline {
+    margin: 0; }
+  div.container #race .pitline {
+    margin: 0.6rem 0;
+    display: flex;
+    justify-content: flex-end; }
+    div.container #race .pitline > i {
+      font-size: 31px; }
+    div.container #race .pitline > span {
+      font-size: 22px; }
   div.container #race .collapsible {
     margin-top: 0; }
     div.container #race .collapsible .collapsible-header {
@@ -26,15 +36,19 @@ div.container {
         div.container #race .collapsible .collapsible-body td .input-field {
           margin: 0; }
           div.container #race .collapsible .collapsible-body td .input-field input[type=text] {
+            margin-left: 2rem;
             margin-bottom: 0;
             height: inherit; }
+          div.container #race .collapsible .collapsible-body td .input-field .prefix ~ input {
+            width: calc(100% - 2rem); }
         div.container #race .collapsible .collapsible-body td .prefix {
           font-size: 1.6rem;
           top: 0; }
         div.container #race .collapsible .collapsible-body td .stage-name {
-          margin-left: 3rem; }
-      div.container #race .collapsible .collapsible-body .delete {
-        margin: 0.3rem; }
+          margin-left: 2rem; }
+      div.container #race .collapsible .collapsible-body .btn-floating.delete {
+        margin: 0.2rem;
+        margin-left: calc(100% - 2.6rem); }
 
 @font-face {
   font-family: 'Material Icons';
