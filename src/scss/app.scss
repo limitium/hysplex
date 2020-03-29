@@ -20,20 +20,48 @@ div.container {
   }
 
   #race {
+    .input-field.inline {
+      margin: 0;
+    }
+
+    .pitline {
+      margin: 0.6rem 0;
+      display: flex;
+      justify-content: flex-end;
+
+      > i {
+        font-size: 31px;
+      }
+
+      > span {
+        font-size: 22px;
+      }
+    }
+
     .collapsible {
       margin-top: 0;
-      .collapsible-header{
+
+      .collapsible-header {
         padding: 0.5rem;
       }
+
       .collapsible-body {
         padding: 0;
-        tr{
-          &.done{background-color: #ccc;}
-          &.current{background-color: deepskyblue;}
+
+        tr {
+          &.done {
+            background-color: #ccc;
+          }
+
+          &.current {
+            background-color: deepskyblue;
+          }
         }
-        th{
+
+        th {
           padding: 0 5px;
         }
+
         td {
           padding: 0 5px;
 
@@ -41,10 +69,14 @@ div.container {
             margin: 0;
 
             input[type=text] {
+              margin-left: 2rem;
               margin-bottom: 0;
               height: inherit;
             }
 
+            .prefix ~ input {
+              width: calc(100% - 2rem);
+            }
           }
 
           .prefix {
@@ -53,11 +85,13 @@ div.container {
           }
 
           .stage-name {
-            margin-left: 3rem;
+            margin-left: 2rem;
           }
         }
-        .delete{
-          margin: 0.3rem;
+
+        .btn-floating.delete {
+          margin: 0.2rem;
+          margin-left: calc(100% - 2.6rem);
         }
       }
     }

@@ -88,6 +88,20 @@ let intputTimeToSeconds = function (value) {
 
 race.teams.forEach(fillStages);
 
+
+let view = {
+    tab: 'teams',
+    width: window.innerWidth
+};
+
+let resizeTimeout;
+window.addEventListener('resize', () => {
+    resizeTimeout && clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        view.width = window.innerWidth;
+    }, 200);
+});
+
 Vue.component('race-time-end', {
     props: ['value', 'stages', 'index'],
     methods: {
@@ -154,15 +168,18 @@ Vue.component('race-new-team', {
             return "Team " + (this.value.teams.length + 1);
         },
         add() {
-            fillStages(createTeam(this.value.newTeamName ? this.value.newTeamName : this.nextName()));
+            let teamName = this.value.newTeamName ? this.value.newTeamName : this.nextName();
+            M.toast({html: `Team ${teamName} has been created`});
+            fillStages(createTeam(teamName));
             this.value.newTeamName = "";
+            document.activeElement.blur();
         }
     },
     template:
         '<div>' +
         '  <div class="input-field inline">\n' +
         '   <i class="material-icons prefix">group_add</i>\n' +
-        '   <input id="add_team" type="text" v-model="value.newTeamName"/>\n' +
+        '   <input id="add_team" type="text" v-model="value.newTeamName" @keyup.enter="add()"/>\n' +
         '   <label for="add_team">{{nextName()}}</label>\n' +
         '  </div>\n' +
         '  <a class="btn-floating waves-effect waves-light teal btn-small">' +
@@ -177,14 +194,22 @@ Vue.component('race-reload', {
             this.value.startedAt = null;
             this.value.teams.forEach(t => {
                 t.stages.splice(1);
+                t.stages[0].end = 0;
                 fillStages(t);
             });
             this.$emit('input', this.value);
+            M.toast({html: 'Race has been reloaded'})
         }
     },
     template: '<a v-on:click="reload()" class="btn-floating btn-large waves-effect waves-light red"><i class="material-icons">refresh</i></a>'
 });
 Vue.component('race-pitlane', {
+    template: '' +
+        '<div class="pitline flow-text">' +
+        '<i class="material-icons">local_parking</i>' +
+        '<i class="material-icons">local_gas_station</i>\n' +
+        '<span>: {{lastKart()}}</span>' +
+        '</div>',
     props: ['pitlane', 'teams'],
     methods: {
         lastKart() {
@@ -208,8 +233,7 @@ Vue.component('race-pitlane', {
                 });
             return currentPitlane.join(" ⤏ ");
         }
-    },
-    template: '<div><p class="flow-text">Pitlane: {{lastKart()}}</p></div>'
+    }
 });
 Vue.component('race-timer', {
     props: ['value'],
@@ -228,22 +252,36 @@ Vue.component('race-timer', {
         },
         start() {
             this.value.startedAt = Date.now();
+            M.toast({html: 'Race has been started!'})
         },
         sync() {
-            let input = this.$el.querySelector("input");
+            let input = this.findInput();
             let seconds = intputTimeToSeconds(input.value);
             if (seconds !== -1) {
                 this.value.startedAt = Date.now() - seconds * 1000;
-                input.value = '';
-                this.$el.querySelector("label").classList.remove('active');
+                this.blur();
+                M.toast({html: 'Time has been synchronized'})
             }
+            if (!input.value) {
+                this.blur();
+            }
+        },
+        setTime() {
+            this.findInput().value = this.$options.filters.raceTime(this.value.getElapsed());
+        },
+        blur() {
+            this.findInput().value = '';
+            document.activeElement.blur();
+        },
+        findInput() {
+            return this.$el.querySelector("input");
         }
     },
     template: '' +
         '<div>' +
         '  <div class="input-field inline">\n' +
         '    <i class="material-icons prefix">schedule</i>\n' +
-        '    <input id="race_time" type="text" value=""/>\n' +
+        '    <input id="race_time" type="text" value="" @focus="setTime()" @keyup.enter="sync()" @keyup.escape="blur()"/>\n' +
         '    <label for="race_time">{{renderTime()}}</label>\n' +
         '  </div>\n' +
         '  <a v-if="!value.startedAt" class="waves-effect waves-light btn-small" v-on:click="start()"><i class="material-icons left">timer</i>start</a>' +
@@ -257,12 +295,21 @@ Vue.component('race-timeline', function (resolve, reject) {
                 type: Array,
                 required: true
             },
+            view: {
+                type: Object
+            },
             race: {
                 type: Object
             }
         },
         watch: {
             teams: {
+                deep: true,
+                handler() {
+                    this.redraw();
+                }
+            },
+            view: {
                 deep: true,
                 handler() {
                     this.redraw();
@@ -296,7 +343,7 @@ Vue.component('race-timeline', function (resolve, reject) {
         mounted: function () {
             this.chart = new google.visualization.Timeline(this.$el);
             google.visualization.events.addListener(this.chart, 'select', () => {
-                console.log(data[this.chart.getSelection()[0].row]);
+                // console.log(this.chart.getSelection()[0].row]);
             });
             google.visualization.events.addListener(this.chart, 'ready', () => {
                 this.interval && clearInterval(this.interval);
@@ -346,11 +393,6 @@ Vue.component('race-timeline', function (resolve, reject) {
         console.log("Google error")
     }
 });
-
-let view = {
-    tab: 'teams'
-};
-
 
 Vue.filter('raceTime', function (value) {
     let sec_num = parseInt(value, 10);
