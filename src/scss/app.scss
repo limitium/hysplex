@@ -96,6 +96,18 @@ div.container {
       }
     }
   }
+  .nobr { white-space: nowrap }
+  .ggl-tooltip {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    font-family: Arial, Helvetica;
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .ggl-tooltip span {
+    font-weight: bold;
+  }
 }
 
 
