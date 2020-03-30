@@ -195,19 +195,26 @@ Vue.component('race-pitlane', {
     methods: {
         lastKart() {
             let currentPitlane = [...this.pitlane];
+            console.log(currentPitlane);
             this.teams.flatMap(t => t.stages.map(s => {
                 const namedStage = Object.assign({}, s);
                 namedStage.team = t.name;
                 return namedStage;
-            })).filter(s => s.type !== 'drive').sort((s1, s2) => s1.end - s2.end).forEach((stage, i, allStages) => {
+            })).filter(s => s.type !== 'drive').filter(s => s.start < race.getElapsed()).sort((s1, s2) => s1.end - s2.end).forEach((stage, i, allStages) => {
                 if (stage.type === 'pit') {
-                    if (stage.kart) {
+                    if (stage.start < race.getElapsed()) {
+                        let prevStagesForTeam = allStages.filter(cs => cs.team === stage.team && cs.end < stage.end);
+                        let kart = prevStagesForTeam[prevStagesForTeam.length - 1].kart;
+                        console.log('add', kart);
+                        currentPitlane.unshift(kart);
+                    }
+                    if (stage.end < race.getElapsed()) {
+                        console.log('pop', stage.kart);
                         currentPitlane.pop();
-                        const stagesWithKartForTeam = allStages.filter(cs => cs.team === stage.team && cs.kart);
-                        currentPitlane.unshift(stagesWithKartForTeam[stagesWithKartForTeam.length - 2].kart);
                     }
                 }
             });
+            console.log(currentPitlane);
             return currentPitlane.join(" ⤏ ");
         }
     }
@@ -248,13 +255,19 @@ Vue.component('race-timer', {
         },
         blur() {
             this.findInput().value = '';
-            document.activeElement.blur();
+            this.$el.querySelector("label").classList.remove('active');
+            if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+            }
+        },
+        clean() {
+            setTimeout(this.blur, 100);
         },
         findInput() {
             return this.$el.querySelector("input");
         }
     },
-    template: '' + '<div>' + '  <div class="input-field inline">\n' + '    <i class="material-icons prefix">schedule</i>\n' + '    <input id="race_time" type="text" value="" @focus="setTime()" @keyup.enter="sync()" @keyup.escape="blur()"/>\n' + '    <label for="race_time">{{renderTime()}}</label>\n' + '  </div>\n' + '  <a v-if="!value.startedAt" class="waves-effect waves-light btn-small" v-on:click="start()"><i class="material-icons left">timer</i>start</a>' + '  <a v-if="value.startedAt" class="waves-effect waves-light btn-small" v-on:click="sync()"><i class="material-icons left">restore</i>sync</a>' + '</div>'
+    template: '' + '<div>' + '  <div class="input-field inline">\n' + '    <i class="material-icons prefix">schedule</i>\n' + '    <input id="race_time" type="text" value="" @focus="setTime()" @blur="clean()" @keyup.enter="sync()" @keyup.escape="blur()"/>\n' + '    <label for="race_time">{{renderTime()}}</label>\n' + '  </div>\n' + '  <a v-if="!value.startedAt" class="waves-effect waves-light btn-small" v-on:click="start()"><i class="material-icons left">timer</i>start</a>' + '  <a v-if="value.startedAt" class="waves-effect waves-light btn-small" v-on:click="sync()"><i class="material-icons left">restore</i>sync</a>' + '</div>'
 });
 Vue.component('race-timeline', function (resolve, reject) {
     let definition = {
