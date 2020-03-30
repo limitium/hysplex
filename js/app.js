@@ -20,6 +20,31 @@ race.getElapsed = function () {
     }
     return (Date.now() - this.startedAt) / 1000;
 };
+race.calculatePitlane = function (forElapsed) {
+    //fill with handicap stages
+    let currentPitlane = [...this.pit];
+    console.log(currentPitlane);
+    this.teams.flatMap(t => t.stages.map(s => {
+        const namedStage = Object.assign({}, s);
+        namedStage.team = t.name;
+        return namedStage;
+    })).filter(s => s.type !== 'drive').filter(s => s.start < forElapsed).sort((s1, s2) => s1.end - s2.end).forEach((stage, i, allStages) => {
+        if (stage.type === 'pit') {
+            if (stage.start < forElapsed) {
+                //store prev stage in map
+                let prevStagesForTeam = allStages.filter(cs => cs.team === stage.team && cs.end < stage.end);
+                let kart = prevStagesForTeam[prevStagesForTeam.length - 1].kart;
+                console.log('add', kart);
+                currentPitlane.unshift(kart);
+            }
+            if (stage.end < forElapsed) {
+                console.log('pop', stage.kart);
+                currentPitlane.pop();
+            }
+        }
+    });
+    return currentPitlane;
+};
 let createTeam = function (name) {
     let team = {
         name: name,
@@ -194,28 +219,7 @@ Vue.component('race-pitlane', {
     props: ['pitlane', 'teams'],
     methods: {
         lastKart() {
-            let currentPitlane = [...this.pitlane];
-            console.log(currentPitlane);
-            this.teams.flatMap(t => t.stages.map(s => {
-                const namedStage = Object.assign({}, s);
-                namedStage.team = t.name;
-                return namedStage;
-            })).filter(s => s.type !== 'drive').filter(s => s.start < race.getElapsed()).sort((s1, s2) => s1.end - s2.end).forEach((stage, i, allStages) => {
-                if (stage.type === 'pit') {
-                    if (stage.start < race.getElapsed()) {
-                        let prevStagesForTeam = allStages.filter(cs => cs.team === stage.team && cs.end < stage.end);
-                        let kart = prevStagesForTeam[prevStagesForTeam.length - 1].kart;
-                        console.log('add', kart);
-                        currentPitlane.unshift(kart);
-                    }
-                    if (stage.end < race.getElapsed()) {
-                        console.log('pop', stage.kart);
-                        currentPitlane.pop();
-                    }
-                }
-            });
-            console.log(currentPitlane);
-            return currentPitlane.join(" ⤏ ");
+            return race.calculatePitlane(race.getElapsed()).join(" ⤏ ");
         }
     }
 });
@@ -299,15 +303,55 @@ Vue.component('race-timeline', function (resolve, reject) {
         },
         methods: {
             redraw() {
-                this.dataTable = new google.visualization.DataTable();
-                this.dataTable.addColumn({ type: 'string', id: 'Team' });
-                this.dataTable.addColumn({ type: 'string', id: 'Stage' });
-                this.dataTable.addColumn({ type: 'date', id: 'Start' });
-                this.dataTable.addColumn({ type: 'date', id: 'End' });
-                let rows = this.teams.map(t => t.stages.map(s => [t.name, s.name, createTimePoint(s.start), createTimePoint(s.end)])).flat();
-                this.dataTable.addRows(rows);
+                let dataTable = new google.visualization.DataTable();
+                dataTable.addColumn({ type: 'string', id: 'Team' });
+                dataTable.addColumn({ type: 'string', id: 'Stage' });
+                dataTable.addColumn({ type: 'date', id: 'Start' });
+                dataTable.addColumn({ type: 'date', id: 'End' });
+                dataTable.addColumn({ type: 'string', id: 'Kart' });
+                let rows = this.teams.map(t => t.stages.map(s => [t.name, s.name, createTimePoint(s.start), createTimePoint(s.end), s.kart])).flat();
 
-                this.chart.draw(this.dataTable, {
+                dataTable.addRows(rows);
+
+                let formatTime = new google.visualization.DateFormat({
+                    pattern: 'HH:mm:ss'
+                });
+
+                let view = new google.visualization.DataView(dataTable);
+                view.setColumns([0, 1, {
+                    role: 'tooltip',
+                    type: 'string',
+                    calc: function (dt, row) {
+                        // build tooltip
+                        let dateBegin = dt.getValue(row, 2);
+                        let dateEnd = dt.getValue(row, 3);
+                        let duration = (dateEnd.getTime() - dateBegin.getTime()) / 1000;
+
+                        let tooltip = '<div class="nobr"><div class="ggl-tooltip"><span>';
+                        tooltip += dt.getValue(row, 0) + ':</span> ' + dt.getValue(row, 1) + '</div>';
+                        tooltip += '<div class="ggl-tooltip"><span>Start: </span>' + formatTime.formatValue(dateBegin);
+                        tooltip += '<div><span>End:&nbsp;&nbsp;</span>' + formatTime.formatValue(dateEnd) + '</div></div>';
+                        let min = parseInt(duration / 60);
+                        let sec = duration - min * 60;
+                        tooltip += '<div class="ggl-tooltip"><span>Duration: </span>' + min + 'm ' + sec + 's</div>';
+                        let currentKart = dt.getValue(row, 4);
+                        let kartData = currentKart;
+                        if (!currentKart) {
+                            kartData = dt.getValue(row - 1, 4);
+                        }
+                        if (currentKart && row > 1) {
+                            let elapsed = (dateEnd.getTime() - dateEnd.getTimezoneOffset() * 60000) / 1000;
+                            console.log(elapsed);
+                            kartData = race.calculatePitlane(elapsed).join(" ⤏ ");
+                        }
+                        tooltip += '<div class="ggl-tooltip"><span>Kart: </span>' + kartData + '</div></div>';
+
+                        return tooltip;
+                    },
+                    p: { html: true }
+                }, 2, 3]);
+
+                this.chart.draw(view.toDataTable(), {
                     height: this.calculateHeight()
                 });
             },

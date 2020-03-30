@@ -49,6 +49,16 @@ div.container {
       div.container #race .collapsible .collapsible-body .btn-floating.delete {
         margin: 0.2rem;
         margin-left: calc(100% - 2.6rem); }
+  div.container .nobr {
+    white-space: nowrap; }
+  div.container .ggl-tooltip {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    font-family: Arial, Helvetica;
+    font-size: 14px;
+    padding: 8px; }
+  div.container .ggl-tooltip span {
+    font-weight: bold; }
 
 @font-face {
   font-family: 'Material Icons';
