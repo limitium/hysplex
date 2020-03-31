@@ -9,7 +9,6 @@ npm run start
  - Add kart autofill
  - Add tooltips everywhere
  - Fix stage/pit update on timer
- - Fix timeline fix after race->options->race switch
  - Make current stage like progress bar
  - Support different time optimisations: min first, min last(current), avg all 
  - Support stage management

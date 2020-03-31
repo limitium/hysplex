@@ -23,7 +23,7 @@ race.getElapsed = function () {
 race.calculatePitlane = function (forElapsed) {
     //fill with handicap stages
     let currentPitlane = [...this.pit];
-    console.log(currentPitlane);
+    // console.log(currentPitlane);
     this.teams
         .flatMap(t => t.stages.map(s => {
             const namedStage = Object.assign({}, s);
@@ -39,11 +39,11 @@ race.calculatePitlane = function (forElapsed) {
                     //store prev stage in map
                     let prevStagesForTeam = allStages.filter(cs => cs.team === stage.team && cs.end < stage.end);
                     let kart = prevStagesForTeam[prevStagesForTeam.length - 1].kart;
-                    console.log('add', kart);
+                    // console.log('add', kart);
                     currentPitlane.unshift(kart);
                 }
                 if (stage.end < forElapsed) {
-                    console.log('pop', stage.kart);
+                    // console.log('pop', stage.kart);
                     currentPitlane.pop();
                 }
             }
@@ -313,8 +313,8 @@ Vue.component('race-timeline', function (resolve, reject) {
                 type: Array,
                 required: true
             },
-            view: {
-                type: Object
+            width: {
+                required: true
             },
             race: {
                 type: Object
@@ -327,8 +327,7 @@ Vue.component('race-timeline', function (resolve, reject) {
                     this.redraw();
                 }
             },
-            view: {
-                deep: true,
+            width: {
                 handler() {
                     this.redraw();
                 }
@@ -336,6 +335,7 @@ Vue.component('race-timeline', function (resolve, reject) {
         },
         methods: {
             redraw() {
+                console.log('w:' + this.$el.offsetWidth);
                 let dataTable = new google.visualization.DataTable();
                 dataTable.addColumn({type: 'string', id: 'Team'});
                 dataTable.addColumn({type: 'string', id: 'Stage'});
@@ -378,7 +378,6 @@ Vue.component('race-timeline', function (resolve, reject) {
                         }
                         if (currentKart && row > 1) {
                             let elapsed = (dateEnd.getTime() - dateEnd.getTimezoneOffset() * 60000) / 1000;
-                            console.log(elapsed);
                             kartData = race.calculatePitlane(elapsed).join(" ⤏ ");
                         }
                         tooltip += '<div class="ggl-tooltip"><span>Kart: </span>' + kartData + '</div></div>';
