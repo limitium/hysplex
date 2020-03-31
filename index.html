@@ -17,7 +17,8 @@
             <div id="race" class="carousel-item">
                 <div class="row">
                     <div class="col s12">
-                        <race-timeline v-bind:teams="race.teams" v-bind:race="race" v-bind:view="view"></race-timeline>
+                        <race-timeline v-bind:teams="race.teams" v-bind:race="race"
+                                       v-bind:width="view.width"></race-timeline>
                     </div>
                 </div>
 
@@ -47,7 +48,7 @@
                                             <th>Kart</th>
                                         </tr>
                                         <tr v-for="(stage,sIndex) in team.stages"
-                                            v-bind:class="[race.getElapsed()>stage.end?'done':'',race.getElapsed()>stage.start&&race.getElapsed()<stage.end?'current':'']">
+                                            v-bind:class="[race.elapsed>=stage.end?'done':'',race.elapsed>=stage.start&&race.elapsed<stage.end?'current':'']">
                                             <td>
                                                 <div class="input-field">
                                                     <i v-if="stage.type=='handicap'" class="material-icons prefix">av_timer</i>
@@ -150,7 +151,7 @@
     <!--                <div class="col s12">-->
     <!--                    <h6 class="white-text">Build:</h6>-->
     <!--                    <p class="grey-text text-lighten-4"><a class="grey-text text-lighten-4"-->
-    <!--                                                           href="https://github.com/limitium/hysplex/commit/5a4c5df4b21a1d72e7808e8e4b91098e0809e43f">5a4c5df4b21a1d72e7808e8e4b91098e0809e43f</a>-->
+    <!--                                                           href="https://github.com/limitium/hysplex/commit/5ccbd64e04027e6b73b54e9551862f532e528bf3">5ccbd64e04027e6b73b54e9551862f532e528bf3</a>-->
     <!--                    </p>-->
     <!--                </div>-->
     <!--            </div>-->

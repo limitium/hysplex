@@ -7,6 +7,7 @@ let race = {
     raceTime: 25 * 6 * 60,
     pit: [5, 6],
     startedAt: null,
+    elapsed: 0,
     newTeamName: "",
     teams: []
 };
@@ -14,16 +15,16 @@ let storedRace = localStorage.getItem('race.data');
 if (storedRace) {
     race = JSON.parse(storedRace);
 }
-race.getElapsed = function () {
-    if (!this.startedAt) {
-        return 0;
+setInterval(() => {
+    if (race.startedAt) {
+        race.elapsed = parseInt((Date.now() - race.startedAt) / 1000);
     }
-    return (Date.now() - this.startedAt) / 1000;
-};
+}, 500);
+
 race.calculatePitlane = function (forElapsed) {
     //fill with handicap stages
     let currentPitlane = [...this.pit];
-    console.log(currentPitlane);
+    // console.log(currentPitlane);
     this.teams.flatMap(t => t.stages.map(s => {
         const namedStage = Object.assign({}, s);
         namedStage.team = t.name;
@@ -34,11 +35,11 @@ race.calculatePitlane = function (forElapsed) {
                 //store prev stage in map
                 let prevStagesForTeam = allStages.filter(cs => cs.team === stage.team && cs.end < stage.end);
                 let kart = prevStagesForTeam[prevStagesForTeam.length - 1].kart;
-                console.log('add', kart);
+                // console.log('add', kart);
                 currentPitlane.unshift(kart);
             }
             if (stage.end < forElapsed) {
-                console.log('pop', stage.kart);
+                // console.log('pop', stage.kart);
                 currentPitlane.pop();
             }
         }
@@ -203,6 +204,7 @@ Vue.component('race-reload', {
     methods: {
         reload() {
             this.value.startedAt = null;
+            this.value.elapsed = 0;
             this.value.teams.forEach(t => {
                 t.stages.splice(1);
                 t.stages[0].end = 0;
@@ -219,7 +221,7 @@ Vue.component('race-pitlane', {
     props: ['pitlane', 'teams'],
     methods: {
         lastKart() {
-            return race.calculatePitlane(race.getElapsed()).join(" ⤏ ");
+            return race.calculatePitlane(race.elapsed).join(" ⤏ ");
         }
     }
 });
@@ -234,7 +236,7 @@ Vue.component('race-timer', {
     methods: {
         renderTime() {
             if (this.value.startedAt) {
-                return this.$options.filters.raceTime(this.value.getElapsed());
+                return this.$options.filters.raceTime(this.value.elapsed);
             }
             return "00:00:00";
         },
@@ -255,7 +257,7 @@ Vue.component('race-timer', {
             }
         },
         setTime() {
-            this.findInput().value = this.$options.filters.raceTime(this.value.getElapsed());
+            this.findInput().value = this.$options.filters.raceTime(this.value.elapsed);
         },
         blur() {
             this.findInput().value = '';
@@ -280,8 +282,8 @@ Vue.component('race-timeline', function (resolve, reject) {
                 type: Array,
                 required: true
             },
-            view: {
-                type: Object
+            width: {
+                required: true
             },
             race: {
                 type: Object
@@ -294,8 +296,7 @@ Vue.component('race-timeline', function (resolve, reject) {
                     this.redraw();
                 }
             },
-            view: {
-                deep: true,
+            width: {
                 handler() {
                     this.redraw();
                 }
@@ -341,7 +342,6 @@ Vue.component('race-timeline', function (resolve, reject) {
                         }
                         if (currentKart && row > 1) {
                             let elapsed = (dateEnd.getTime() - dateEnd.getTimezoneOffset() * 60000) / 1000;
-                            console.log(elapsed);
                             kartData = race.calculatePitlane(elapsed).join(" ⤏ ");
                         }
                         tooltip += '<div class="ggl-tooltip"><span>Kart: </span>' + kartData + '</div></div>';
@@ -389,7 +389,7 @@ Vue.component('race-timeline', function (resolve, reject) {
                     timerLine.setAttribute("stroke-width", "2");
                     timeRect.append(timerLine);
                     this.interval = setInterval(() => {
-                        let elapsed = this.race.getElapsed();
+                        let elapsed = this.race.elapsed;
                         let timeFraction = elapsed / this.race.raceTime;
                         let newX = timeRect.getBBox().x + timeRect.getBBox().width * timeFraction;
                         timerLine.setAttribute('x1', newX);
