@@ -7,6 +7,7 @@ let race = {
     raceTime: 25 * 6 * 60,
     pit: [5, 6],
     startedAt: null,
+    elapsed: 0,
     newTeamName: "",
     teams: []
 };
@@ -14,12 +15,12 @@ let storedRace = localStorage.getItem('race.data');
 if (storedRace) {
     race = JSON.parse(storedRace);
 }
-race.getElapsed = function () {
-    if (!this.startedAt) {
-        return 0;
+setInterval(() => {
+    if (race.startedAt) {
+        race.elapsed = parseInt((Date.now() - race.startedAt) / 1000);
     }
-    return (Date.now() - this.startedAt) / 1000;
-};
+}, 500);
+
 race.calculatePitlane = function (forElapsed) {
     //fill with handicap stages
     let currentPitlane = [...this.pit];
@@ -222,6 +223,7 @@ Vue.component('race-reload', {
     methods: {
         reload() {
             this.value.startedAt = null;
+            this.value.elapsed = 0;
             this.value.teams.forEach(t => {
                 t.stages.splice(1);
                 t.stages[0].end = 0;
@@ -243,7 +245,7 @@ Vue.component('race-pitlane', {
     props: ['pitlane', 'teams'],
     methods: {
         lastKart() {
-            return race.calculatePitlane(race.getElapsed()).join(" ⤏ ");
+            return race.calculatePitlane(race.elapsed).join(" ⤏ ");
         }
     }
 });
@@ -258,7 +260,7 @@ Vue.component('race-timer', {
     methods: {
         renderTime() {
             if (this.value.startedAt) {
-                return this.$options.filters.raceTime(this.value.getElapsed());
+                return this.$options.filters.raceTime(this.value.elapsed);
             }
             return "00:00:00";
         },
@@ -279,7 +281,7 @@ Vue.component('race-timer', {
             }
         },
         setTime() {
-            this.findInput().value = this.$options.filters.raceTime(this.value.getElapsed());
+            this.findInput().value = this.$options.filters.raceTime(this.value.elapsed);
         },
         blur() {
             this.findInput().value = '';
@@ -335,7 +337,6 @@ Vue.component('race-timeline', function (resolve, reject) {
         },
         methods: {
             redraw() {
-                console.log('w:' + this.$el.offsetWidth);
                 let dataTable = new google.visualization.DataTable();
                 dataTable.addColumn({type: 'string', id: 'Team'});
                 dataTable.addColumn({type: 'string', id: 'Stage'});
@@ -425,7 +426,7 @@ Vue.component('race-timeline', function (resolve, reject) {
                     timerLine.setAttribute("stroke-width", "2");
                     timeRect.append(timerLine);
                     this.interval = setInterval(() => {
-                        let elapsed = this.race.getElapsed();
+                        let elapsed = this.race.elapsed;
                         let timeFraction = elapsed / this.race.raceTime;
                         let newX = timeRect.getBBox().x + timeRect.getBBox().width * timeFraction;
                         timerLine.setAttribute('x1', newX);
