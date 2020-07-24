@@ -5,7 +5,7 @@ let race = {
     pitstopToNextPilot: true,
     maxKartTime: 23 * 60,
     raceTime: 25 * 6 * 60,
-    pit: [5, 6],
+    pit: ["K-50", "K-60"],
     startedAt: null,
     elapsed: 0,
     newTeamName: "",
@@ -21,10 +21,36 @@ setInterval(() => {
     }
 }, 500);
 
+race.forecastKarts = function () {
+    const prevKartForTeam = {};
+    const currentPitlane = [...race.pit];
+    this.teams.flatMap(t => t.stages.map(s => {
+        return {
+            team: t,
+            stage: s
+        };
+    })).sort((ts1, ts2) => ts1.stage.end - ts2.stage.end).forEach(teamStage => {
+        if (teamStage.stage.type === 'handicap') {
+            prevKartForTeam[teamStage.team.name] = teamStage.stage.kart;
+        }
+        if (teamStage.stage.type === 'drive') {
+            teamStage.stage.kart = prevKartForTeam[teamStage.team.name];
+        }
+        if (teamStage.stage.type === 'pit') {
+            currentPitlane.unshift(prevKartForTeam[teamStage.team.name]);
+            const kartFromPit = currentPitlane.pop();
+            if (!teamStage.stage.kartDirty) {
+                teamStage.stage.kart = kartFromPit;
+            }
+            prevKartForTeam[teamStage.team.name] = teamStage.stage.kart;
+        }
+    });
+    return currentPitlane;
+};
+
 race.calculatePitlane = function (forElapsed) {
     //fill with handicap stages
-    let currentPitlane = [...this.pit];
-    // console.log(currentPitlane);
+    let currentPitlane = [...race.pit];
     this.teams.flatMap(t => t.stages.map(s => {
         const namedStage = Object.assign({}, s);
         namedStage.team = t.name;
@@ -46,7 +72,7 @@ race.calculatePitlane = function (forElapsed) {
     });
     return currentPitlane;
 };
-let createTeam = function (name) {
+let createTeam = function (name, kart) {
     let team = {
         name: name,
         stages: [{
@@ -54,7 +80,8 @@ let createTeam = function (name) {
             start: 0,
             end: 0,
             type: 'handicap',
-            kart: ""
+            kart: kart,
+            kartDirty: false
         }]
     };
     race.teams.push(team);
@@ -74,8 +101,7 @@ let fillStages = function (team) {
                 name: `Stop ${index % race.pilotsInTeam + 1}`,
                 start: totalTime,
                 end: totalTime + totalPitstopTime,
-                type: 'pit',
-                kart: ""
+                type: 'pit'
             });
             totalTime += totalPitstopTime;
         }
@@ -84,8 +110,7 @@ let fillStages = function (team) {
             name: `Pilot ${index % race.pilotsInTeam + 1}`,
             start: totalTime,
             end: pilotEndTime,
-            type: 'drive',
-            kart: ""
+            type: 'drive'
         });
         totalTime = pilotEndTime;
         if (!race.pitstopToNextPilot && pilotEndTime < race.raceTime) {
@@ -93,8 +118,7 @@ let fillStages = function (team) {
                 name: `Stop ${index % race.pilotsInTeam + 1}`,
                 start: pilotEndTime,
                 end: pilotEndTime + totalPitstopTime,
-                type: 'pit',
-                kart: ""
+                type: 'pit'
             });
             totalTime += totalPitstopTime;
         }
@@ -113,6 +137,7 @@ let intputTimeToSeconds = function (value) {
 };
 
 race.teams.forEach(fillStages);
+race.forecastKarts();
 
 let view = {
     tab: 'teams',
@@ -141,14 +166,28 @@ Vue.component('race-time-end', {
                     this.stages[i].start -= diff;
                     this.stages[i].end -= diff;
                 }
-                this.stages[this.stages.length - 1].end = race.raceTime;
+                if (this.stages[this.stages.length - 1].end + race.pitstopLag + race.pitstopTime < race.raceTime) {
+                    fillStages(this);
+                }
+                race.forecastKarts();
                 this.$emit('input', seconds);
             }
         }
     },
-    template: '<div class="input-field">\n' + '<i class="material-icons prefix">alarm</i>\n' + '<input v-bind:value="renderDate()" v-on:input="updateDate($event.target.value)" placeholder="End" type="text" class="validate">\n' + '</div>'
+    template: '<div class="input-field">\n' + '<i class="material-icons prefix" v-if="stages[index].type==\'handicap\'">av_timer</i>\n' + '<input v-bind:value="renderDate()" v-on:input="updateDate($event.target.value)" placeholder="End" type="text" class="validate">\n' + '</div>'
 });
-
+Vue.component('race-kart', {
+    props: ['value'],
+    methods: {
+        updateKart(newKart) {
+            this.value.kartDirty = true;
+            this.value.kart = newKart;
+            race.forecastKarts();
+            this.$emit('input', this.value);
+        }
+    },
+    template: '<input v-bind:value="value.kart" v-on:input="updateKart($event.target.value)" placeholder="Kart" type="text" v-bind:class="{valid: value.kartDirty}"/>'
+});
 Vue.component('race-time-editor', {
     props: ['value'],
     methods: {
@@ -174,11 +213,11 @@ Vue.component('race-time-duration', {
     },
     template: '<span>{{renderDuration()}}</span>'
 });
-Vue.component('race-last-kart', {
+Vue.component('race-current-kart', {
     props: ['value'],
     methods: {
         lastKart() {
-            return this.value.stages.reduce((kart, stage) => stage.kart ? stage.kart : kart, "");
+            return this.value.stages.find(s => s.end > race.elapsed).kart;
         }
     },
     template: '<span>{{lastKart()}}</span>'
@@ -192,7 +231,8 @@ Vue.component('race-new-team', {
         add() {
             let teamName = this.value.newTeamName ? this.value.newTeamName : this.nextName();
             M.toast({ html: `Team ${teamName} has been created` });
-            fillStages(createTeam(teamName));
+            fillStages(createTeam(teamName, "K-" + (this.value.teams.length + 1)));
+            race.forecastKarts();
             this.value.newTeamName = "";
             document.activeElement.blur();
         }
@@ -310,8 +350,12 @@ Vue.component('race-timeline', function (resolve, reject) {
                 dataTable.addColumn({ type: 'date', id: 'Start' });
                 dataTable.addColumn({ type: 'date', id: 'End' });
                 dataTable.addColumn({ type: 'string', id: 'Kart' });
-                let rows = this.teams.map(t => t.stages.map(s => [t.name, s.name, createTimePoint(s.start), createTimePoint(s.end), s.kart])).flat();
+                dataTable.addColumn({ type: 'string', id: 'Type' });
+                let rows = this.teams.map(t => t.stages.map(s => [t.name, s.name, createTimePoint(s.start), createTimePoint(s.end), s.kart, s.type])).flat();
 
+                if (!rows.length) {
+                    return;
+                }
                 dataTable.addRows(rows);
 
                 let formatTime = new google.visualization.DateFormat({
@@ -335,12 +379,9 @@ Vue.component('race-timeline', function (resolve, reject) {
                         let min = parseInt(duration / 60);
                         let sec = duration - min * 60;
                         tooltip += '<div class="ggl-tooltip"><span>Duration: </span>' + min + 'm ' + sec + 's</div>';
-                        let currentKart = dt.getValue(row, 4);
-                        let kartData = currentKart;
-                        if (!currentKart) {
-                            kartData = dt.getValue(row - 1, 4);
-                        }
-                        if (currentKart && row > 1) {
+
+                        let kartData = dt.getValue(row, 4);
+                        if (dt.getValue(row, 5) === 'pit') {
                             let elapsed = (dateEnd.getTime() - dateEnd.getTimezoneOffset() * 60000) / 1000;
                             kartData = race.calculatePitlane(elapsed).join(" ⤏ ");
                         }
@@ -390,7 +431,10 @@ Vue.component('race-timeline', function (resolve, reject) {
                     timeRect.append(timerLine);
                     this.interval = setInterval(() => {
                         let elapsed = this.race.elapsed;
-                        let timeFraction = elapsed / this.race.raceTime;
+                        //until stages could last more than this.race.raceTime
+                        let maxRaceTime = Math.max(race.teams.map(t => t.stages[t.stages.length - 1].end));
+                        let timeFraction = elapsed / maxRaceTime;
+
                         let newX = timeRect.getBBox().x + timeRect.getBBox().width * timeFraction;
                         timerLine.setAttribute('x1', newX);
                         timerLine.setAttribute('x2', newX);
