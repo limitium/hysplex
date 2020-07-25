@@ -471,8 +471,7 @@ Vue.component('race-timeline', function (resolve, reject) {
                     this.interval = setInterval(() => {
                         let elapsed = this.race.elapsed;
                         //until stages could last more than this.race.raceTime
-                        let maxRaceTime = Math.max(race.teams
-                            .map(t => t.stages[t.stages.length - 1].end));
+                        let maxRaceTime = Math.max(...race.teams.map(t => t.stages[t.stages.length - 1].end));
                         let timeFraction = elapsed / maxRaceTime;
 
                         let newX = timeRect.getBBox().x + timeRect.getBBox().width * timeFraction;
