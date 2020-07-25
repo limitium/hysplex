@@ -15,80 +15,84 @@
         <!--            <div class="tabs-content carousel carousel-slider">-->
         <div class="tabs-content">
             <div id="race" class="carousel-item">
-                <div class="row">
-                    <div class="col s12">
-                        <race-timeline v-bind:teams="race.teams" v-bind:race="race"
-                                       v-bind:width="view.width"></race-timeline>
+                <div v-show="race.teams.length > 0">
+                    <div class="row">
+                        <div class="col s12">
+                            <race-timeline v-bind:teams="race.teams" v-bind:race="race"
+                                           v-bind:width="view.width"></race-timeline>
+                        </div>
                     </div>
-                </div>
 
-                <div class="row">
-                    <div class="col s12 m6">
-                        <race-timer v-model="race"></race-timer>
+                    <div class="row">
+                        <div class="col s12 m6">
+                            <race-timer v-model="race"></race-timer>
+                        </div>
+                        <div class="col s12 m6">
+                            <race-pitlane v-bind:pitlane="race.pit" v-bind:teams="race.teams"></race-pitlane>
+                        </div>
                     </div>
-                    <div class="col s12 m6">
-                        <race-pitlane v-bind:pitlane="race.pit" v-bind:teams="race.teams"></race-pitlane>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col s12">
-                        <ul class="collapsible">
-                            <li v-for="(team,tIndex) in race.teams">
-                                <div class="collapsible-header">
-                                    <span><i class="material-icons">group</i>{{team.name}}</span>
-                                    <span><i class="material-icons">directions_car</i>
-                                <race-last-kart v-model="race.teams[tIndex]"></race-last-kart></span>
-                                </div>
-                                <div class="collapsible-body">
-                                    <table class="stripped highlight">
-                                        <tr>
-                                            <th>Start</th>
-                                            <th>End</th>
-                                            <th>Duration</th>
-                                            <th>Kart</th>
-                                        </tr>
-                                        <tr v-for="(stage,sIndex) in team.stages"
-                                            v-bind:class="[race.elapsed>=stage.end?'done':'',race.elapsed>=stage.start&&race.elapsed<stage.end?'current':'']">
-                                            <td>
-                                                <div class="input-field">
-                                                    <i v-if="stage.type=='handicap'" class="material-icons prefix">av_timer</i>
-                                                    <i v-else-if="stage.type=='pit'" class="material-icons prefix">transfer_within_a_station</i>
-                                                    <i v-else-if="stage.type=='drive'" class="material-icons prefix">airline_seat_recline_extra</i>
-                                                    <div class="stage-name">
-                                                        {{stage.start|raceTime}}
+                    <div class="row">
+                        <div class="col s12">
+                            <ul class="collapsible">
+                                <li v-for="(team,tIndex) in race.teams">
+                                    <div class="collapsible-header">
+                                        <span><i class="material-icons">group</i>{{team.name}}</span>
+                                        <span><i class="material-icons">directions_car</i>
+                                        <race-current-kart v-model="race.teams[tIndex]"/></span>
+                                    </div>
+                                    <div class="collapsible-body">
+                                        <table class="stripped highlight">
+                                            <tr>
+                                                <th>Start</th>
+                                                <th>End</th>
+                                                <th>Duration</th>
+                                                <th>Kart</th>
+                                            </tr>
+                                            <tr v-for="(stage,sIndex) in team.stages"
+                                                v-bind:class="[race.elapsed>=stage.end?'done':'',race.elapsed>=stage.start&&race.elapsed<stage.end?'current':'']">
+                                                <td>
+                                                    <div class="input-field">
+                                                        <i v-if="stage.type=='handicap'" class="material-icons prefix">alarm</i>
+                                                        <i v-else-if="stage.type=='pit'" class="material-icons prefix">transfer_within_a_station</i>
+                                                        <i v-else-if="stage.type=='drive'"
+                                                           class="material-icons prefix">airline_seat_recline_extra</i>
+                                                        <div class="stage-name">
+                                                            {{stage.start|raceTime}}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div v-if="sIndex+1==team.stages.length" class="input-field"><i
-                                                        class="material-icons prefix">traffic</i>
-                                                    <div class="stage-name">
-                                                        {{stage.end|raceTime}}
+                                                </td>
+                                                <td>
+                                                    <div v-if="sIndex+1==team.stages.length" class="input-field"><i
+                                                            class="material-icons prefix">traffic</i>
+                                                        <div class="stage-name">
+                                                            {{stage.end|raceTime}}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <race-time-end v-else v-model="stage.end" v-bind:stages="team.stages"
-                                                               v-bind:index="sIndex"></race-time-end>
-                                            </td>
-                                            <td>
-                                                <race-time-duration v-model="team.stages[sIndex]"></race-time-duration>
-                                            </td>
-                                            <td>
-                                                <div v-if="stage.type!='drive'" class="input-field">
-                                                    <i class="material-icons prefix">directions_car</i>
-                                                    <input placeholder="Kart" type="text" class="validate"
-                                                           v-model="stage.kart">
-                                                </div>
-                                            </td>
+                                                    <race-time-end v-else v-model="stage.end"
+                                                                   v-bind:stages="team.stages"
+                                                                   v-bind:index="sIndex"/>
+                                                </td>
+                                                <td>
+                                                    <race-time-duration
+                                                            v-model="team.stages[sIndex]"/>
+                                                </td>
+                                                <td>
+                                                    <div v-if="stage.type!='drive'" class="input-field">
+                                                        <i class="material-icons prefix">directions_car</i>
+                                                        <race-kart v-model="team.stages[sIndex]"/>
+                                                    </div>
+                                                </td>
 
-                                        </tr>
-                                    </table>
-                                    <a v-on:click="race.teams.splice(tIndex,1)"
-                                       class="btn-floating waves-effect waves-light red btn-small delete">
-                                        <i class="material-icons right">delete</i>
-                                    </a>
-                                </div>
-                            </li>
-                        </ul>
+                                            </tr>
+                                        </table>
+                                        <a v-on:click="race.teams.splice(tIndex,1) && race.forecastKarts();"
+                                           class="btn-floating waves-effect waves-light red btn-small delete">
+                                            <i class="material-icons right">delete</i>
+                                        </a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
                 <div class="row">
