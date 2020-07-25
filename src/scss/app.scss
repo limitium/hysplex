@@ -72,6 +72,7 @@ div.container {
               margin-left: 2rem;
               margin-bottom: 0;
               height: inherit;
+              width: calc(100% - 2rem);
             }
 
             .prefix ~ input {
