@@ -38,7 +38,8 @@ div.container {
           div.container #race .collapsible .collapsible-body td .input-field input[type=text] {
             margin-left: 2rem;
             margin-bottom: 0;
-            height: inherit; }
+            height: inherit;
+            width: calc(100% - 2rem); }
           div.container #race .collapsible .collapsible-body td .input-field .prefix ~ input {
             width: calc(100% - 2rem); }
         div.container #race .collapsible .collapsible-body td .prefix {
